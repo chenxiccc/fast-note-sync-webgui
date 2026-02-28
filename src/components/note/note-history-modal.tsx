@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { format } from "date-fns";
 
 
@@ -51,10 +51,16 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
     const [restoreConfirmOpen, setRestoreConfirmOpen] = useState(false);
     const [restoring, setRestoring] = useState(false);
     const pageSize = 5;
+    const historyRequestIdRef = useRef(0);
+    const detailRequestIdRef = useRef(0);
 
-    const fetchHistoryList = (currentPage: number) => {
+    const fetchHistoryList = useCallback((currentPage: number) => {
+        const requestId = ++historyRequestIdRef.current;
         setLoading(true);
         handleNoteHistoryList(vault, notePath, pathHash, currentPage, pageSize, isRecycle, (data) => {
+            if (requestId !== historyRequestIdRef.current) {
+                return;
+            }
             if (data) {
                 setHistoryList(data.list || []);
                 if (data.pager) {
@@ -66,25 +72,41 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
             }
             setLoading(false);
         });
-    };
+    }, [handleNoteHistoryList, vault, notePath, pathHash, pageSize, isRecycle]);
 
     useEffect(() => {
         if (isOpen) {
             fetchHistoryList(page);
             setSelectedHistory(null);
             setShowOriginal(false);
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, page, vault, notePath]);
 
-    const handleViewDetail = (id: number) => {
+        historyRequestIdRef.current += 1;
+        detailRequestIdRef.current += 1;
+        setLoading(false);
+        setDetailLoading(false);
+    }, [isOpen, page, fetchHistoryList]);
+
+    useEffect(() => {
+        return () => {
+            historyRequestIdRef.current += 1;
+            detailRequestIdRef.current += 1;
+        };
+    }, []);
+
+    const handleViewDetail = useCallback((id: number) => {
+        const requestId = ++detailRequestIdRef.current;
         setDetailLoading(true);
         setCopied(false);
         handleNoteHistoryDetail(vault, id, (data) => {
+            if (requestId !== detailRequestIdRef.current) {
+                return;
+            }
             setSelectedHistory(data);
             setDetailLoading(false);
         });
-    };
+    }, [handleNoteHistoryDetail, vault]);
 
     // 处理恢复到历史版本
     const handleRestore = () => {

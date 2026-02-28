@@ -114,12 +114,6 @@ const OBSIDIAN_SANITIZE_SCHEMA = {
         img: [...(defaultSchema.attributes?.img ?? []), "width"],
     },
 };
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const REHYPE_PLUGINS: any[] = [
-    rehypeRaw,
-    [rehypeSanitize, OBSIDIAN_SANITIZE_SCHEMA],
-    rehypeHighlight,
-];
 
 const EXPORT_STYLE = `
 body {
@@ -219,6 +213,13 @@ function escapeMarkdownText(text: string): string {
         .replace(/\)/g, "\\)");
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const REHYPE_PLUGINS: any[] = [
+    rehypeRaw,
+    [rehypeSanitize, OBSIDIAN_SANITIZE_SCHEMA],
+    rehypeHighlight,
+];
+
 // ─── Obsidian 语法转换 ─────────────────────────────────────
 
 function transformObsidianSyntax(
@@ -279,12 +280,11 @@ function transformObsidianSyntax(
         return `[📎 ${displayName}](${apiUrl})`;
     });
 
-    // 3. [[page]] / [[page|alias]] Wiki Links（非嵌入）
+    // 3. [[page]] wiki link -> <span class="obsidian-wiki-link">
     result = result.replace(/\[\[([^\]]+)\]\]/g, (_, inner: string) => {
         const parts = inner.split("|");
-        const target = parts[0].trim();
-        const alias = parts[1]?.trim() || target;
-        return `<span class="obsidian-wiki-link" title="${target}">${alias}</span>`;
+        const display = (parts[1] || parts[0]).trim();
+        return `<span class="obsidian-wiki-link" title="${parts[0].trim()}">${display}</span>`;
     });
 
     // 4. ==highlight== 高亮
