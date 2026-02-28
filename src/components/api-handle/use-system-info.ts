@@ -72,7 +72,7 @@ export function useSystemInfo() {
     const [error, setError] = useState<string | null>(null);
     const token = localStorage.getItem("token");
 
-    const fetchSystemInfo = useCallback(async () => {
+    const fetchSystemInfo = useCallback(async (signal?: AbortSignal) => {
         if (!token) return;
         setIsLoading(true);
         setError(null);
@@ -84,6 +84,7 @@ export function useSystemInfo() {
                     "Authorization": `Bearer ${token}`,
                     Lang: getBrowserLang(),
                 },
+                signal,
             });
 
             if (!response.ok) {
@@ -91,21 +92,37 @@ export function useSystemInfo() {
             }
 
             const res = await response.json();
+            if (signal?.aborted) {
+                return;
+            }
             if (res.code === 0 || (res.code < 100 && res.code > 0)) {
                 setSystemInfo(res.data);
             } else {
                 setError(res.message || "Failed to get system info");
             }
         } catch (error) {
-            setError("Failed to get system info");
-            console.error("System info fetch error:", error);
+            if (error instanceof DOMException && error.name === "AbortError") {
+                return;
+            }
+            if (!signal?.aborted) {
+                setError("Failed to get system info");
+                console.error("System info fetch error:", error);
+            }
         } finally {
-            setIsLoading(false);
+            if (!signal?.aborted) {
+                setIsLoading(false);
+            }
         }
     }, [token]);
 
     useEffect(() => {
-        fetchSystemInfo();
+        const controller = new AbortController();
+
+        fetchSystemInfo(controller.signal);
+
+        return () => {
+            controller.abort();
+        };
     }, [fetchSystemInfo]);
 
     return {

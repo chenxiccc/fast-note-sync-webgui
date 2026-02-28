@@ -254,6 +254,8 @@ export function SystemSettings({ onBack, isDashboard = false }: { onBack?: () =>
     }
 
     useEffect(() => {
+        const controller = new AbortController()
+
         const fetchConfig = async () => {
             if (isDashboard) {
                 setLoading(false)
@@ -264,11 +266,21 @@ export function SystemSettings({ onBack, isDashboard = false }: { onBack?: () =>
             try {
                 const headers = { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() }
 
-                const [configRes, ngrokRes, cloudflareRes] = await Promise.all([
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config"), { headers }).then(res => res.json()),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/ngrok"), { headers }).then(res => res.json()),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), { headers }).then(res => res.json())
+                const [configResponse, ngrokResponse, cloudflareResponse] = await Promise.all([
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config"), { headers, signal: controller.signal }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/ngrok"), { headers, signal: controller.signal }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), { headers, signal: controller.signal })
                 ])
+
+                if (controller.signal.aborted) return
+
+                const [configRes, ngrokRes, cloudflareRes] = await Promise.all([
+                    configResponse.json(),
+                    ngrokResponse.json(),
+                    cloudflareResponse.json(),
+                ])
+
+                if (controller.signal.aborted) return
 
                 if (configRes.code === 0 || (configRes.code < 100 && configRes.code > 0)) {
                     setConfig(configRes.data)
@@ -284,14 +296,23 @@ export function SystemSettings({ onBack, isDashboard = false }: { onBack?: () =>
                 if (cloudflareRes.code === 0 || (cloudflareRes.code < 100 && cloudflareRes.code > 0)) {
                     setCloudflareConfig(cloudflareRes.data)
                 }
-            } catch {
+            } catch (error) {
+                if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) {
+                    return
+                }
                 toast.error(t("ui.common.error"))
                 if (!config) onBack?.()
             } finally {
-                setLoading(false)
+                if (!controller.signal.aborted) {
+                    setLoading(false)
+                }
             }
         }
         fetchConfig()
+
+        return () => {
+            controller.abort()
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [onBack, t, token, isDashboard])
 

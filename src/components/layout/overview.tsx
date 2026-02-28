@@ -44,7 +44,7 @@ export function Overview({ refreshKey, children }: { refreshKey?: number, childr
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={refreshSystemInfo}
+                    onClick={() => refreshSystemInfo()}
                     disabled={systemLoading}
                     className="h-8 w-8 rounded-full hover:bg-muted"
                 >

@@ -60,23 +60,49 @@ function App() {
   }, [isLoggedIn, handleUserInfo, logout])
 
   useEffect(() => {
-    if ((currentModule === "notes" || currentModule === "files" || currentModule === "trash") && isLoggedIn) {
-      setVaultsLoaded(false)
-      handleVaultList((vaults) => {
-        if (vaults.length > 0) {
-          const vaultExists = activeVault && vaults.some(v => v.vault === activeVault)
-          if (!vaultExists) {
-            setActiveVault(vaults[0].vault)
+    if ((currentModule !== "notes" && currentModule !== "files" && currentModule !== "trash") || !isLoggedIn) return
+
+    let isMounted = true
+    setVaultsLoaded(false)
+
+    const loadVaults = async () => {
+      try {
+        await handleVaultList((vaults) => {
+          if (!isMounted) return
+
+          if (vaults.length > 0) {
+            const vaultExists = activeVault && vaults.some(v => v.vault === activeVault)
+            if (!vaultExists) {
+              setActiveVault(vaults[0].vault)
+            }
+            setVaultsLoaded(true)
+            return
           }
-          setVaultsLoaded(true)
-        } else {
+
           toast.warning(t("ui.vault.pleaseCreateVault"))
           setModule("vaults")
           setVaultsLoaded(true)
-        }
-      })
+        })
+      } catch (error: unknown) {
+        if (!isMounted) return
+        toast.error(error instanceof Error ? error.message : String(error))
+        setVaultsLoaded(true)
+      }
+    }
+
+    void loadVaults()
+
+    return () => {
+      isMounted = false
     }
   }, [currentModule, isLoggedIn, handleVaultList, t, setModule, activeVault])
+
+  useEffect(() => {
+    if (isLoggedIn && currentModule === "settings" && configLoaded && !isAdmin) {
+      toast.warning(t("ui.settings.onlyAdminAccess"))
+      setModule("vaults")
+    }
+  }, [isLoggedIn, currentModule, configLoaded, isAdmin, setModule, t])
 
   const handleFontsUpdate = useCallback((fontUrl: string) => {
     const oldLink = document.getElementById("dynamic-font-link")
@@ -152,6 +178,10 @@ function App() {
               setAdminUid(res.data.adminUid)
             }
           }
+        }
+      } catch (error: unknown) {
+        if (isMounted) {
+          toast.error(error instanceof Error ? error.message : String(error))
         }
       } finally {
         if (isMounted) {
@@ -275,8 +305,6 @@ function App() {
           )
         }
         if (!isAdmin) {
-          toast.warning(t("ui.settings.onlyAdminAccess"))
-          setModule("vaults")
           return null
         }
         return (

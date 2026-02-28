@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { VaultType } from "@/lib/types/vault";
 import { Database } from "lucide-react";
 
+import { toast } from "@/components/common/Toast";
 import { FileList } from "./file-list";
 
 
@@ -49,10 +50,30 @@ export function FileManager({
     const { handleVaultList } = useVaultHandle();
 
     useEffect(() => {
-        handleVaultList((data) => {
-            setVaults(data);
-            vaultsLoaded.current = true;
-        });
+        let isMounted = true;
+
+        const loadVaults = async () => {
+            try {
+                await handleVaultList((data) => {
+                    if (!isMounted) return;
+                    setVaults(data);
+                });
+            } catch (error: unknown) {
+                if (!isMounted) return;
+                toast.error(error instanceof Error ? error.message : String(error));
+                setVaults([]);
+            } finally {
+                if (isMounted) {
+                    vaultsLoaded.current = true;
+                }
+            }
+        };
+
+        void loadVaults();
+
+        return () => {
+            isMounted = false;
+        };
     }, [handleVaultList]);
 
     // Reset page and folder navigation state when vault changes

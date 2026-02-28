@@ -26,7 +26,11 @@ export function useVaultHandle() {
     if (res.code < 100 && res.code > 0) {
       callback(res.data || [])
     } else {
-      return { success: false, error: res.message + ": " + res.details }
+      const details = Array.isArray(res.details) ? res.details.join(", ") : res.details
+      const message = res.message || "Failed to load vault list"
+      throw new Error(details
+        ? `${message}: ${details}`
+        : message)
     }
   }, [token])
 

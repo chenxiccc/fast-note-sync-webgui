@@ -6,6 +6,7 @@ import { VaultType } from "@/lib/types/vault";
 import { Note } from "@/lib/types/note";
 import { Database } from "lucide-react";
 
+import { toast } from "@/components/common/Toast";
 import { NoteHistoryModal } from "./note-history-modal";
 import { NoteEditor } from "./note-editor";
 import { NoteList } from "./note-list";
@@ -57,10 +58,30 @@ export function NoteManager({
     const { handleVaultList } = useVaultHandle();
 
     useEffect(() => {
-        handleVaultList((data) => {
-            setVaults(data);
-            vaultsLoaded.current = true;
-        });
+        let isMounted = true;
+
+        const loadVaults = async () => {
+            try {
+                await handleVaultList((data) => {
+                    if (!isMounted) return;
+                    setVaults(data);
+                });
+            } catch (error: unknown) {
+                if (!isMounted) return;
+                toast.error(error instanceof Error ? error.message : String(error));
+                setVaults([]);
+            } finally {
+                if (isMounted) {
+                    vaultsLoaded.current = true;
+                }
+            }
+        };
+
+        void loadVaults();
+
+        return () => {
+            isMounted = false;
+        };
     }, [handleVaultList]);
 
     // Reset page and folder navigation state when vault changes
