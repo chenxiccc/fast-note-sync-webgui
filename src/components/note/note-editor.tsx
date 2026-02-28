@@ -331,6 +331,7 @@ export function NoteEditor({
                     <Button
                         variant="ghost"
                         size="icon-sm"
+                        aria-label={t("ui.common.save")}
                         className="self-center h-6 w-6 sm:h-7 sm:w-7 shrink-0"
                         onClick={handleFirstSave}
                         disabled={!path || saving}
@@ -360,10 +361,10 @@ export function NoteEditor({
                         onBlur={saveTitle}
                         className="font-bold text-sm sm:text-lg border-none shadow-none focus-visible:ring-0 px-1 h-7 sm:h-auto py-0 flex-1"
                     />
-                    <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7 shrink-0" onClick={saveTitle}>
+                    <Button variant="ghost" size="icon" aria-label={t("ui.common.save")} className="h-6 w-6 sm:h-7 sm:w-7 shrink-0" onClick={saveTitle}>
                         <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 sm:h-7 sm:w-7 shrink-0" onClick={cancelEditingTitle}>
+                    <Button variant="ghost" size="icon" aria-label={t("ui.common.cancel")} className="h-6 w-6 sm:h-7 sm:w-7 shrink-0" onClick={cancelEditingTitle}>
                         <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                 </div>
@@ -439,6 +440,7 @@ export function NoteEditor({
                     <Button
                         variant="ghost"
                         size="icon"
+                        aria-label={t("ui.common.previous")}
                         onClick={handleBack}
                         className="shrink-0 rounded-lg sm:rounded-xl h-7 w-7 sm:h-10 sm:w-10"
                     >

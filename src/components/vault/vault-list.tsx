@@ -523,6 +523,7 @@ export function VaultList({ onNavigateToNotes, onNavigateToAttachments }: VaultL
             <Button
               variant="ghost"
               size="icon"
+              aria-label={t("ui.common.save")}
               className="h-8 w-8 rounded-xl text-green-600 hover:text-green-700 hover:bg-green-50"
               onClick={handleAdd}
             >
@@ -531,6 +532,7 @@ export function VaultList({ onNavigateToNotes, onNavigateToAttachments }: VaultL
             <Button
               variant="ghost"
               size="icon"
+              aria-label={t("ui.common.cancel")}
               className="h-8 w-8 rounded-xl text-muted-foreground hover:text-foreground"
               onClick={() => {
                 setIsAdding(false)

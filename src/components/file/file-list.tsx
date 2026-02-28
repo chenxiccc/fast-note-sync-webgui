@@ -280,6 +280,7 @@ export function FileList({ vault, vaults, onVaultChange, isRecycle = false, page
                         <Button
                             variant="outline"
                             size="icon"
+                            aria-label={t("ui.common.refresh")}
                             onClick={() => fetchFiles()}
                             disabled={loading}
                             className="rounded-xl shrink-0"

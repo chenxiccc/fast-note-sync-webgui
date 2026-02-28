@@ -299,6 +299,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                         <Button
                             variant="outline"
                             size="icon"
+                            aria-label={t("ui.common.refresh")}
                             onClick={() => fetchNotes()}
                             disabled={loading}
                             className="rounded-xl shrink-0"
