@@ -81,3 +81,41 @@
 .markdown-preview::-webkit-scrollbar-thumb:hover {
   background-color: rgba(128, 128, 128, 0.5);
 }
+
+/* ─── Obsidian 特有语法样式 ─── */
+
+/* Wiki Links [[page]] */
+.obsidian-wiki-link {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+  padding: 0 4px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: default;
+}
+
+.obsidian-wiki-link:hover {
+  background: hsl(var(--primary) / 0.15);
+}
+
+/* Tags #tag */
+.obsidian-tag {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* Highlights ==text== */
+mark {
+  background: #fef08a;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.dark mark {
+  background: #854d0e;
+  color: #fef9c3;
+}
