@@ -102,7 +102,8 @@ const CM6_BASIC_SETUP = {
     highlightActiveLineGutter: false,
 };
 
-const REMARK_PLUGINS = [remarkGfm];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const REMARK_PLUGINS: any[] = [[remarkGfm, { singleTilde: false }]];
 const REHYPE_PLUGINS = [rehypeRaw, rehypeHighlight];
 
 const EXPORT_STYLE = `
