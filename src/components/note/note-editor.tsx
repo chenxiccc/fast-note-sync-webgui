@@ -62,6 +62,7 @@ export function NoteEditor({
     const editorRef = useRef<MarkdownEditorRef>(null);
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef("");
 
     const [path, setPath] = useState("");
     const [content, setContent] = useState("");
@@ -74,6 +75,11 @@ export function NoteEditor({
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isPreviewMode, setIsPreviewMode] = useState(initialPreviewMode);
     const titleInputRef = useRef<HTMLInputElement>(null);
+
+    // content state 变化时同步 ref（加载笔记、重置时）
+    useEffect(() => {
+        contentRef.current = content;
+    }, [content]);
 
     // 当 initialPreviewMode 变化时（例如从外部切换笔记），同步状态
     useEffect(() => {
@@ -176,9 +182,9 @@ export function NoteEditor({
         }, silent);
     }, [vault, originalNote, handleSaveNote, onSaveSuccess, isRecycle]);
 
-    // 内容变化时的防抖自动保存
+    // 内容变化时的防抖自动保存（只更新 ref，不触发 React 重渲染）
     const handleContentChange = useCallback((newContent: string) => {
-        setContent(newContent);
+        contentRef.current = newContent;
 
         // 新建笔记且没有标题时不自动保存
         if (isNewNote && !path) return;
@@ -228,10 +234,10 @@ export function NoteEditor({
 
         // 如果路径变化了，保存笔记
         if (sanitized !== oldPath) {
-            const currentContent = editorRef.current?.getValue() || content;
+            const currentContent = editorRef.current?.getValue() ?? contentRef.current;
             doSave(sanitized, currentContent, true);
         }
-    }, [editingTitleValue, path, content, doSave, cancelEditingTitle]);
+    }, [editingTitleValue, path, doSave, cancelEditingTitle]);
 
     const handleTitleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === "Enter") {
@@ -259,9 +265,9 @@ export function NoteEditor({
             toast.error(t("ui.note.noteTitleRequired"));
             return;
         }
-        const currentContent = editorRef.current?.getValue() || content;
+        const currentContent = editorRef.current?.getValue() ?? contentRef.current;
         doSave(path, currentContent, true);
-    }, [path, content, doSave, t]);
+    }, [path, doSave, t]);
 
     const getDisplayParts = (fullPath: string) => {
         const lastSlash = fullPath.lastIndexOf('/');
@@ -424,7 +430,14 @@ export function NoteEditor({
                     {note && (
                         <Tooltip content={isPreviewMode ? t("ui.note.editNote") : t("ui.note.viewNote")} side="bottom" delay={200}>
                             <Button
-                                onClick={() => setIsPreviewMode(!isPreviewMode)}
+                                onClick={() => {
+                                    // 切换前同步最新编辑内容到 state，确保预览/重建编辑器时 value 正确
+                                    if (!isPreviewMode) {
+                                        const latest = editorRef.current?.getValue() ?? contentRef.current;
+                                        setContent(latest);
+                                    }
+                                    setIsPreviewMode(!isPreviewMode);
+                                }}
                                 variant="outline"
                                 size="icon"
                                 className="rounded-lg sm:rounded-xl h-7 w-7 sm:h-10 sm:w-10"
