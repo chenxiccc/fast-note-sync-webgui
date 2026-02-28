@@ -526,8 +526,8 @@ export default {
     "api.storage.delete.error": "Échec de la suppression de la configuration de stockage",
     "api.storage.save.error": "Échec de l'enregistrement de la configuration de stockage",
     "api.storage.types.error": "Échec d'obtention des types de stockage",
-    "api.storage.validate.success": "Test de connexion au stockage rÃ©ussi",
-    "api.storage.validate.error": "Ãchec du test de connexion au stockage",
+    "api.storage.validate.success": "Test de connexion au stockage réussi",
+    "api.storage.validate.error": "Échec du test de connexion au stockage",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "Échec de l'authentification WebDAV. Veuillez vérifier le nom d'utilisateur et le mot de passe",

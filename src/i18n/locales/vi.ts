@@ -383,8 +383,8 @@ export default {
     "ui.storage.help.customPath": "Duong dan thu muc con de luu tru tap tin, khong can dau gach cheo dau/cuoi",
     "ui.storage.help.accessUrlPrefix": "Tien to URL de tao lien ket truy cap tap tin, chi de hien thi",
     "ui.storage.confirmDelete": "Bạn có chắc chắn muốn xóa cấu hình lưu trữ này không?",
-    "ui.storage.validate.title": "Kiá»m tra káº¿t ná»i",
-    "ui.storage.validate.loading": "Äang kiá»m tra...",
+    "ui.storage.validate.title": "Kiểm tra kết nối",
+    "ui.storage.validate.loading": "Đang kiểm tra...",
 
     // --- ui.backup ---
     "ui.backup.management": "Quản lý tác vụ",
@@ -526,8 +526,8 @@ export default {
     "api.storage.delete.error": "Xóa cấu hình lưu trữ thất bại",
     "api.storage.save.error": "Lưu cấu hình lưu trữ thất bại",
     "api.storage.types.error": "Lấy các loại lưu trữ thất bại",
-    "api.storage.validate.success": "Kiá»m tra káº¿t ná»i lÆ°u trá»¯ thÃ nh cÃ´ng",
-    "api.storage.validate.error": "Kiá»m tra káº¿t ná»i lÆ°u trá»¯ tháº¥t báº¡i",
+    "api.storage.validate.success": "Kiểm tra kết nối lưu trữ thành công",
+    "api.storage.validate.error": "Kiểm tra kết nối lưu trữ thất bại",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "Xác thực WebDAV thất bại. Vui lòng kiểm tra tên người dùng và mật khẩu",

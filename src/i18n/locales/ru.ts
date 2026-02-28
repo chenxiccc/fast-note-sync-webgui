@@ -383,8 +383,8 @@ export default {
     "ui.storage.help.customPath": "Путь к подкаталогу для хранения файлов, без начальных/конечных слэшей",
     "ui.storage.help.accessUrlPrefix": "Префикс URL для генерации ссылок доступа к файлам, только для отображения",
     "ui.storage.confirmDelete": "Вы уверены, что хотите удалить эту конфигурацию хранилища?",
-    "ui.storage.validate.title": "Ð¢ÐµÑÑ Ð¿Ð¾Ð´ÐºÐ»ÑÑÐµÐ½Ð¸Ñ",
-    "ui.storage.validate.loading": "Ð¢ÐµÑÑÐ¸ÑÐ¾Ð²Ð°Ð½Ð¸Ðµ...",
+    "ui.storage.validate.title": "Тест подключения",
+    "ui.storage.validate.loading": "Тестирование...",
 
     // --- ui.backup ---
     "ui.backup.management": "Управление задачами",
@@ -526,8 +526,8 @@ export default {
     "api.storage.delete.error": "Не удалось удалить конфигурацию хранилища",
     "api.storage.save.error": "Не удалось сохранить конфигурацию хранилища",
     "api.storage.types.error": "Не удалось получить типы хранилищ",
-    "api.storage.validate.success": "Ð¢ÐµÑÑ Ð¿Ð¾Ð´ÐºÐ»ÑÑÐµÐ½Ð¸Ñ Ðº ÑÑÐ°Ð½Ð¸Ð»Ð¸ÑÑ ÑÑÐ¿ÐµÑÐµÐ½",
-    "api.storage.validate.error": "Ð¢ÐµÑÑ Ð¿Ð¾Ð´ÐºÐ»ÑÑÐµÐ½Ð¸Ñ Ðº ÑÑÐ°Ð½Ð¸Ð»Ð¸ÑÑ Ð½Ðµ Ð¿ÑÐ¾Ð¹Ð´ÐµÐ½",
+    "api.storage.validate.success": "Тест подключения к хранилищу успешен",
+    "api.storage.validate.error": "Тест подключения к хранилищу не пройден",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "Ошибка аутентификации WebDAV. Проверьте имя пользователя и пароль",

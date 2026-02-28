@@ -384,7 +384,7 @@ export default {
     "ui.storage.help.accessUrlPrefix": "Prefix URL pentru generarea linkurilor de acces la fisiere, doar pentru afisare",
     "ui.storage.confirmDelete": "Sigur dorești să ștergi această configurare de stocare?",
     "ui.storage.validate.title": "Testare conexiune",
-    "ui.storage.validate.loading": "Se testeazÄ...",
+    "ui.storage.validate.loading": "Se testează...",
 
     // --- ui.backup ---
     "ui.backup.management": "Gestionare sarcini",
@@ -526,8 +526,8 @@ export default {
     "api.storage.delete.error": "Ștergerea configurației stocare a eșuat",
     "api.storage.save.error": "Salvarea configurației stocare a eșuat",
     "api.storage.types.error": "Preluarea tipurilor de stocare a eșuat",
-    "api.storage.validate.success": "Test conexiune stocare reuÈit",
-    "api.storage.validate.error": "Test conexiune stocare eÈuat",
+    "api.storage.validate.success": "Test conexiune stocare reușit",
+    "api.storage.validate.error": "Test conexiune stocare eșuat",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "Autentificarea WebDAV a eșuat. Verificați numele de utilizator și parola",

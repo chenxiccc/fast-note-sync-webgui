@@ -526,8 +526,8 @@ export default {
     "api.storage.delete.error": "Fshirja e konfigurimit të rregullimit dështoi",
     "api.storage.save.error": "Ruajtja e konfigurimit të rregullimit dështoi",
     "api.storage.types.error": "Marrja e llojeve të rregullimit dështoi",
-    "api.storage.validate.success": "Testi i lidhjes sÃ« ruajtjes me sukses",
-    "api.storage.validate.error": "Testi i lidhjes sÃ« ruajtjes dÃ«shtoi",
+    "api.storage.validate.success": "Testi i lidhjes së ruajtjes me sukses",
+    "api.storage.validate.error": "Testi i lidhjes së ruajtjes dështoi",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "Autentifikimi WebDAV dështoi. Kontrolloni emrin e përdoruesit dhe fjalëkalimin",

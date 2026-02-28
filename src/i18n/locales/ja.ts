@@ -384,8 +384,8 @@ export default {
     "ui.storage.help.customPath": "ファイル保存用のサブディレクトリパス、先頭・末尾のスラッシュ不要",
     "ui.storage.help.accessUrlPrefix": "ファイルアクセスリンク生成用のプレフィックスアドレス、表示専用",
     "ui.storage.confirmDelete": "このストレージ設定を削除してもよろしいですか？",
-    "ui.storage.validate.title": "æ¥ç¶ãã¹ã",
-    "ui.storage.validate.loading": "ãã¹ãä¸­...",
+    "ui.storage.validate.title": "接続テスト",
+    "ui.storage.validate.loading": "テスト中...",
 
     // --- ui.backup ---
     "ui.backup.management": "タスク管理",
@@ -527,8 +527,8 @@ export default {
     "api.storage.delete.error": "ストレージ設定の削除に失敗しました",
     "api.storage.save.error": "ストレージ設定の保存に失敗しました",
     "api.storage.types.error": "ストレージタイプの取得に失敗しました",
-    "api.storage.validate.success": "ã¹ãã¬ã¼ã¸æ¥ç¶ãã¹ãæå",
-    "api.storage.validate.error": "ã¹ãã¬ã¼ã¸æ¥ç¶ãã¹ãå¤±æ",
+    "api.storage.validate.success": "ストレージ接続テスト成功",
+    "api.storage.validate.error": "ストレージ接続テスト失敗",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "WebDAV 認証に失敗しました。ユーザー名とパスワードを確認してください",

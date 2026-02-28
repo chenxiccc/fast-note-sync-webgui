@@ -383,8 +383,8 @@ export default {
     "ui.storage.help.customPath": "مسار الدليل الفرعي لتخزين الملفات، بدون شرطات مائلة في البداية/النهاية",
     "ui.storage.help.accessUrlPrefix": "بادئة URL لإنشاء روابط الوصول إلى الملفات، للعرض فقط",
     "ui.storage.confirmDelete": "هل أنت متأكد من حذف إعدادات التخزين هذه؟",
-    "ui.storage.validate.title": "Ø§Ø®ØªØ¨Ø§Ø± Ø§ÙØ§ØªØµØ§Ù",
-    "ui.storage.validate.loading": "Ø¬Ø§Ø±Ù Ø§ÙØ§Ø®ØªØ¨Ø§Ø±...",
+    "ui.storage.validate.title": "اختبار الاتصال",
+    "ui.storage.validate.loading": "جاري الاختبار...",
 
     // --- ui.backup ---
     "ui.backup.management": "إدارة المهام",
@@ -526,8 +526,8 @@ export default {
     "api.storage.delete.error": "فشل حذف إعدادات التخزين",
     "api.storage.save.error": "فشل حفظ إعدادات التخزين",
     "api.storage.types.error": "فشل جلب أنواع التخزين",
-    "api.storage.validate.success": "Ø§Ø®ØªØ¨Ø§Ø± Ø§ØªØµØ§Ù Ø§ÙØªØ®Ø²ÙÙ ÙØ§Ø¬Ø­",
-    "api.storage.validate.error": "ÙØ´Ù Ø§Ø®ØªØ¨Ø§Ø± Ø§ØªØµØ§Ù Ø§ÙØªØ®Ø²ÙÙ",
+    "api.storage.validate.success": "اختبار اتصال التخزين ناجح",
+    "api.storage.validate.error": "فشل اختبار اتصال التخزين",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "فشل مصادقة WebDAV. يرجى التحقق من اسم المستخدم وكلمة المرور",

@@ -391,7 +391,7 @@ export default {
     "ui.storage.help.customPath": "文件存放的子目录路径，无需首尾斜杠",
     "ui.storage.help.accessUrlPrefix": "用于生成文件访问链接的前缀地址，仅展示用途",
     "ui.storage.confirmDelete": "确定要删除这个存储配置吗？",
-    "ui.storage.validate.title": "测试链接",
+    "ui.storage.validate.title": "测试连接",
     "ui.storage.validate.loading": "测试中...",
 
     // --- ui.backup ---

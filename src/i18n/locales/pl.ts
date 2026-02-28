@@ -383,7 +383,7 @@ export default {
     "ui.storage.help.customPath": "Sciezka podkatalogu do przechowywania plikow, bez ukosnikow na poczatku/koncu",
     "ui.storage.help.accessUrlPrefix": "Prefiks URL do generowania linkow dostepu do plikow, tylko do wyswietlania",
     "ui.storage.confirmDelete": "Czy na pewno chcesz usunąć tę konfigurację pamięci?",
-    "ui.storage.validate.title": "Test poÅÄczenia",
+    "ui.storage.validate.title": "Test połączenia",
     "ui.storage.validate.loading": "Testowanie...",
 
     // --- ui.backup ---
@@ -526,8 +526,8 @@ export default {
     "api.storage.delete.error": "Usuwanie konfiguracji pamięci nie powiodło się",
     "api.storage.save.error": "Zapisywanie konfiguracji pamięci nie powiodło się",
     "api.storage.types.error": "Pobieranie typów pamięci nie powiodło się",
-    "api.storage.validate.success": "Test poÅÄczenia z pamiÄciÄ zakoÅczony sukcesem",
-    "api.storage.validate.error": "Test poÅÄczenia z pamiÄciÄ nie powiÃ³dÅ siÄ",
+    "api.storage.validate.success": "Test połączenia z pamięcią zakończony sukcesem",
+    "api.storage.validate.error": "Test połączenia z pamięcią nie powiódł się",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "Uwierzytelnianie WebDAV nie powiodło się. Sprawdź nazwę użytkownika i hasło",

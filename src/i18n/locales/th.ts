@@ -383,8 +383,8 @@ export default {
     "ui.storage.help.customPath": "เส้นทางไดเรกทอรีย่อยสำหรับจัดเก็บไฟล์ ไม่ต้องมีเครื่องหมายทับหน้า/หลัง",
     "ui.storage.help.accessUrlPrefix": "คำนำหน้า URL สำหรับสร้างลิงก์เข้าถึงไฟล์ ใช้แสดงผลเท่านั้น",
     "ui.storage.confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบการตั้งค่าพื้นที่เก็บข้อมูลนี้?",
-    "ui.storage.validate.title": "à¸à¸à¸ªà¸­à¸à¸à¸²à¸£à¹à¸à¸·à¹à¸­à¸¡à¸à¹à¸­",
-    "ui.storage.validate.loading": "à¸à¸³à¸¥à¸±à¸à¸à¸à¸ªà¸­à¸...",
+    "ui.storage.validate.title": "ทดสอบการเชื่อมต่อ",
+    "ui.storage.validate.loading": "กำลังทดสอบ...",
 
     // --- ui.backup ---
     "ui.backup.management": "จัดการงาน",
@@ -526,8 +526,8 @@ export default {
     "api.storage.delete.error": "ลบการตั้งค่าพื้นที่เก็บข้อมูลไม่สำเร็จ",
     "api.storage.save.error": "บันทึกการตั้งค่าพื้นที่เก็บข้อมูลไม่สำเร็จ",
     "api.storage.types.error": "ดึงข้อมูลประเภทพื้นที่เก็บข้อมูลไม่สำเร็จ",
-    "api.storage.validate.success": "à¸à¸à¸ªà¸­à¸à¸à¸²à¸£à¹à¸à¸·à¹à¸­à¸¡à¸à¹à¸­à¸à¸·à¹à¸à¸à¸µà¹à¹à¸à¹à¸à¸à¹à¸­à¸¡à¸¹à¸¥à¸ªà¸³à¹à¸£à¹à¸",
-    "api.storage.validate.error": "à¸à¸à¸ªà¸­à¸à¸à¸²à¸£à¹à¸à¸·à¹à¸­à¸¡à¸à¹à¸­à¸à¸·à¹à¸à¸à¸µà¹à¹à¸à¹à¸à¸à¹à¸­à¸¡à¸¹à¸¥à¹à¸¡à¹à¸ªà¸³à¹à¸£à¹à¸",
+    "api.storage.validate.success": "ทดสอบการเชื่อมต่อพื้นที่เก็บข้อมูลสำเร็จ",
+    "api.storage.validate.error": "ทดสอบการเชื่อมต่อพื้นที่เก็บข้อมูลไม่สำเร็จ",
 
     // --- error.storage / error.backup / error.network (error-mapper) ---
     "error.storage.webdav.unauthorized": "การยืนยันตัวตน WebDAV ล้มเหลว กรุณาตรวจสอบชื่อผู้ใช้และรหัสผ่าน",
