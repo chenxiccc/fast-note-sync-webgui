@@ -808,6 +808,13 @@ html.dark[data-color-scheme="teal"],
     height: 36px;
   }
 
+  @media (pointer: coarse) {
+    .min-touch-target {
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
+
   input,
   textarea {
     font-size: 16px;

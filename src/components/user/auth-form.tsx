@@ -168,7 +168,11 @@ export function AuthForm({ onSuccess, registerIsEnable = true }: AuthFormProps) 
               >
                 <div>
                   <div className="relative group">
+                    <label htmlFor="login-credentials" className="sr-only">
+                      {t("ui.auth.credentials")}
+                    </label>
                     <Input
+                      id="login-credentials"
                       placeholder={t("ui.auth.credentialsPlaceholder")}
                       {...loginForm.register("credentials")}
                       className="auth-input"

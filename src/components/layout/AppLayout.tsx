@@ -42,7 +42,7 @@ export function AppLayout({
   return (
     <div
       className={cn(
-        "h-screen overflow-hidden bg-background",
+        "h-dvh md:h-screen overflow-x-hidden md:overflow-hidden bg-background",
         className
       )}
     >
