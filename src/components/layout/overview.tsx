@@ -124,7 +124,7 @@ export function Overview({ refreshKey, children }: { refreshKey?: number, childr
                         })()}</div>
 
                         <div className="text-muted-foreground">{t("ui.system.os")} / {t("ui.system.kernelVersion")}</div>
-                        <div className="text-right font-medium text-[10px] sm:text-xs truncate" title={`${systemInfo.host.osPretty} (${systemInfo.host.kernelVersion})`}>
+                        <div className="text-right font-medium text-[10px] sm:text-xs break-all" title={`${systemInfo.host.osPretty} (${systemInfo.host.kernelVersion})`}>
                             {systemInfo.host.osPretty}
                             <span className="text-muted-foreground mx-1.5 opacity-50">|</span>
                             <span className="font-mono">{systemInfo.host.kernelVersion}</span>
