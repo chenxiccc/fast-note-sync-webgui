@@ -1,5 +1,5 @@
-import { addCacheBuster } from "@/lib/utils/cache-buster";
 import { useState, useCallback, useEffect, useRef } from "react";
+import { addCacheBuster } from "@/lib/utils/cache-buster";
 import { getBrowserLang } from "@/i18n/utils";
 import env from "@/env.ts";
 
@@ -13,28 +13,37 @@ export interface SupportRecord {
     unit: string;
 }
 
+export interface SupportPager {
+    page: number;
+    pageSize: number;
+    totalRows: number;
+}
+
 export function useSupport() {
     const [supportList, setSupportList] = useState<SupportRecord[]>([]);
+    const [pager, setPager] = useState<SupportPager>({ page: 1, pageSize: 20, totalRows: 0 });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const activeRequestControllerRef = useRef<AbortController | null>(null);
+    const activeRequestIdRef = useRef<number>(0);
 
-    const fetchSupport = useCallback(async () => {
-        activeRequestControllerRef.current?.abort();
-        const controller = new AbortController();
-        activeRequestControllerRef.current = controller;
-        const { signal } = controller;
+    const fetchSupport = useCallback(async (page: number = 1, pageSize: number = 20, sortBy: string = "amount", sortOrder: string = "desc") => {
+        const requestId = ++activeRequestIdRef.current;
 
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch(addCacheBuster(env.API_URL + "/api/support"), {
+            const pageStr = Math.floor(page).toString();
+            const pageSizeStr = Math.floor(pageSize).toString();
+            let url = `${env.API_URL}/api/support?page=${pageStr}&pageSize=${pageSizeStr}`;
+            if (sortBy) url += `&sortBy=${sortBy}`;
+            if (sortOrder) url += `&sortOrder=${sortOrder}`;
+
+            const response = await fetch(addCacheBuster(url), {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
                     "Lang": getBrowserLang(),
                 },
-                signal,
             });
 
             if (!response.ok) {
@@ -42,40 +51,46 @@ export function useSupport() {
             }
 
             const res = await response.json();
-            if (signal.aborted) {
+            if (activeRequestIdRef.current !== requestId) {
                 return;
             }
             if (res.code === 0 || (res.code < 100 && res.code > 0)) {
-                setSupportList(res.data || []);
+                if (res.data && Array.isArray(res.data.list)) {
+                    setSupportList(res.data.list || []);
+                    setPager(res.data.pager || { page, pageSize, totalRows: 0 });
+                } else if (Array.isArray(res.data)) {
+                    setSupportList(res.data || []);
+                    setPager({ page: 1, pageSize: res.data.length, totalRows: res.data.length });
+                } else {
+                    setSupportList([]);
+                    setPager({ page, pageSize, totalRows: 0 });
+                }
             } else {
                 setError(res.message || "Failed to get support records");
             }
         } catch (error) {
-            if (error instanceof DOMException && error.name === "AbortError") {
+            if (activeRequestIdRef.current !== requestId) {
                 return;
             }
-            if (!signal.aborted) {
-                setError("Failed to get support records");
-                console.error("Support fetch error:", error);
-            }
+            setError("Failed to get support records");
+            console.error("Support fetch error:", error);
         } finally {
-            if (!signal.aborted) {
+            if (activeRequestIdRef.current === requestId) {
                 setIsLoading(false);
-            }
-            if (activeRequestControllerRef.current === controller) {
-                activeRequestControllerRef.current = null;
             }
         }
     }, []);
 
     useEffect(() => {
         return () => {
-            activeRequestControllerRef.current?.abort();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+            activeRequestIdRef.current++;
         };
     }, []);
 
     return {
         supportList,
+        pager,
         isLoading,
         error,
         refresh: fetchSupport
