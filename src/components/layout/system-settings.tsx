@@ -1,5 +1,6 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog";
-import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, Settings, HelpCircle, Github, Send, RefreshCw, Cpu, Download } from "lucide-react";
+import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, Settings, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
 import { useState, useEffect, useCallback } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +30,7 @@ interface SystemConfig {
     historyKeepVersions: number
     historySaveDelay: string
     adminUid: number
+    pullSource: string
 }
 
 interface NgrokConfig {
@@ -452,6 +454,29 @@ export function SystemSettings({ onBack, isDashboard = false }: { onBack?: () =>
                                 <Type className="h-5 w-5" />
                                 {t("ui.settings.fontConfig")}
                             </h2>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <Globe className="h-5 w-5 text-muted-foreground" />
+                                    <span className="text-sm font-medium">{t("ui.settings.pullSource")}</span>
+                                </div>
+                                <Select
+                                    value={config.pullSource || "auto"}
+                                    onValueChange={(value) => updateConfig({ pullSource: value })}
+                                >
+                                    <SelectTrigger className="rounded-xl">
+                                        <SelectValue placeholder={t("ui.settings.pullSource")} />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl">
+                                        <SelectItem value="auto">{t("ui.settings.pullSource.auto")}</SelectItem>
+                                        <SelectItem value="github">{t("ui.settings.pullSource.github")}</SelectItem>
+                                        <SelectItem value="cnb">{t("ui.settings.pullSource.cnb")}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">{t("ui.settings.pullSourceDesc")}</p>
+                            </div>
+
+                            <div className="border-t border-border" />
 
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3">

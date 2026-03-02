@@ -235,7 +235,7 @@ export default {
     "ui.settings.systemConfig": "分享设置",
     "ui.settings.securityConfig": "安全设置",
     "ui.settings.noteRelatedConfig": "笔记设置",
-    "ui.settings.fontConfig": "界面设置",
+    "ui.settings.fontConfig": "常规设置",
     "ui.settings.saveSettings": "保存设置",
     "ui.settings.saveSuccess": "设置保存成功",
     "ui.settings.saveFailed": "设置保存失败",
@@ -299,6 +299,11 @@ export default {
     "ui.settings.cloudflareLogDesc": "日志记录在 storage/logs/cloudflared_tunnel.log",
     "ui.settings.saveCloudflare": "保存设置",
     "ui.settings.downloadCloudflared": "隧道程序下载",
+    "ui.settings.pullSource": "版本检测源",
+    "ui.settings.pullSourceDesc": "选择版本检测&更新时的来源仓库。",
+    "ui.settings.pullSource.auto": "自动检测",
+    "ui.settings.pullSource.github": "github.com",
+    "ui.settings.pullSource.cnb": "腾讯 cnb.tool",
 
     // --- ui.obsidian ---
     "ui.obsidian.authTokenConfig": "授权配置",
