@@ -1,4 +1,4 @@
-import { ArrowLeft, Folder, History, RefreshCcw, Check, X, Cloud, Fullscreen, Shrink, Eye, Pencil } from "lucide-react";
+import { ArrowLeft, Folder, History, RefreshCcw, Check, X, Cloud, Fullscreen, Shrink, Eye, Pencil, Columns2, PanelLeftClose, ArrowLeftRight } from "lucide-react";
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import { useNoteHandle } from "@/components/api-handle/note-handle";
 import { Note, NoteDetail } from "@/lib/types/note";
@@ -71,6 +71,7 @@ export function NoteEditor({
     const contentRef = useRef("");
     const pathRef = useRef("");
     const flushPendingSaveRef = useRef<() => void>(() => {});
+    const loadRequestRef = useRef(0);
 
     const [path, setPath] = useState("");
     const [content, setContent] = useState("");
@@ -82,6 +83,8 @@ export function NoteEditor({
     const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isPreviewMode, setIsPreviewMode] = useState(initialPreviewMode);
+    const [viewLayout, setViewLayout] = useState<"single" | "split">("single");
+    const [splitReversed, setSplitReversed] = useState(false);
     const titleInputRef = useRef<HTMLInputElement>(null);
 
     // content state 变化时同步 ref（加载笔记、重置时）
@@ -102,17 +105,59 @@ export function NoteEditor({
         setPath(nextPath);
     }, []);
 
+    // 执行保存操作
+    const doSave = useCallback((currentPath: string, currentContent: string, silent: boolean = false) => {
+        if (!currentPath || isRecycle) return;
+
+        const fullPath = currentPath.endsWith(".md") ? currentPath : currentPath + ".md";
+
+        const options: { pathHash?: string; srcPath?: string; srcPathHash?: string; contentHash?: string } = {
+            pathHash: hashCode(fullPath),
+            contentHash: hashCode(currentContent)
+        };
+
+        if (originalNote) {
+            options.srcPath = originalNote.path;
+            options.srcPathHash = hashCode(originalNote.path);
+        }
+
+        setSaving(true);
+        handleSaveNote(vault, fullPath, currentContent, options, () => {
+            setSaving(false);
+            setLastSavedAt(new Date());
+            // 保存成功后更新 originalNote 的 path，避免后续请求被误判为重命名
+            if (originalNote && originalNote.path !== fullPath) {
+                setOriginalNote(prev => prev ? { ...prev, path: fullPath } : null);
+            }
+            onSaveSuccess(fullPath, options.pathHash || "");
+        }, () => {
+            setSaving(false);
+        }, silent);
+    }, [vault, originalNote, handleSaveNote, onSaveSuccess, isRecycle]);
+
     // 记录上一次加载的笔记标识，用于判断是否需要重新加载
     const lastNoteKeyRef = useRef<string>("");
 
     const loadNote = useCallback(() => {
+        // 切换笔记前：先用旧 path flush 待保存内容，再清除定时器
+        if (saveTimerRef.current) {
+            clearTimeout(saveTimerRef.current);
+            saveTimerRef.current = null;
+            const latestContent = editorRef.current?.getValue() ?? contentRef.current;
+            doSave(pathRef.current, latestContent, true);
+        }
+
+        const requestId = ++loadRequestRef.current;
         if (note) {
             updatePath(note.path.replace(/\.md$/, ""));
             setLoading(true);
             handleGetNote(vault, note.path, note.pathHash, isRecycle, (data) => {
+                // stale response 保护：丢弃过期请求的响应
+                if (requestId !== loadRequestRef.current) return;
                 setOriginalNote(data);
                 setContent(data.content);
             }, () => {
+                if (requestId !== loadRequestRef.current) return;
                 setLoading(false);
             });
         } else {
@@ -121,7 +166,7 @@ export function NoteEditor({
             setOriginalNote(null);
             setLoading(false);
         }
-    }, [note, vault, handleGetNote, isRecycle, updatePath]);
+    }, [note, vault, handleGetNote, isRecycle, updatePath, doSave]);
 
     // 当 note 关键信息变化时进行加载
     useEffect(() => {
@@ -163,37 +208,26 @@ export function NoteEditor({
         };
     }, []);
 
-
-
-    // 执行保存操作
-    const doSave = useCallback((currentPath: string, currentContent: string, silent: boolean = false) => {
-        if (!currentPath || isRecycle) return;
-
-        const fullPath = currentPath.endsWith(".md") ? currentPath : currentPath + ".md";
-
-        const options: { pathHash?: string; srcPath?: string; srcPathHash?: string; contentHash?: string } = {
-            pathHash: hashCode(fullPath),
-            contentHash: hashCode(currentContent)
-        };
-
-        if (originalNote) {
-            options.srcPath = originalNote.path;
-            options.srcPathHash = hashCode(originalNote.path);
-        }
-
-        setSaving(true);
-        handleSaveNote(vault, fullPath, currentContent, options, () => {
-            setSaving(false);
-            setLastSavedAt(new Date());
-            // 保存成功后更新 originalNote 的 path，避免后续请求被误判为重命名
-            if (originalNote && originalNote.path !== fullPath) {
-                setOriginalNote(prev => prev ? { ...prev, path: fullPath } : null);
+    // 移动端自动退出分屏，防止隐藏按钮后无法退出
+    useEffect(() => {
+        if (viewLayout !== "split") return;
+        const mql = window.matchMedia("(min-width: 768px)");
+        const handleChange = (e: MediaQueryListEvent) => {
+            if (!e.matches) {
+                const latest = editorRef.current?.getValue() ?? contentRef.current;
+                setContent(latest);
+                setViewLayout("single");
             }
-            onSaveSuccess(fullPath, options.pathHash || "");
-        }, () => {
-            setSaving(false);
-        }, silent);
-    }, [vault, originalNote, handleSaveNote, onSaveSuccess, isRecycle]);
+        };
+        if (!mql.matches) {
+            const latest = editorRef.current?.getValue() ?? contentRef.current;
+            setContent(latest);
+            setViewLayout("single");
+            return;
+        }
+        mql.addEventListener("change", handleChange);
+        return () => mql.removeEventListener("change", handleChange);
+    }, [viewLayout]);
 
     const flushPendingSave = useCallback(() => {
         if (!saveTimerRef.current) return;
@@ -213,6 +247,11 @@ export function NoteEditor({
     const handleContentChange = useCallback((newContent: string) => {
         contentRef.current = newContent;
 
+        // 分屏模式下同步 content state，驱动预览面板更新
+        if (viewLayout === "split") {
+            setContent(newContent);
+        }
+
         // 新建笔记且没有标题时不自动保存
         if (isNewNote && !pathRef.current) return;
         // 回收站模式不保存
@@ -230,7 +269,7 @@ export function NoteEditor({
             const latestContent = editorRef.current?.getValue() ?? contentRef.current;
             doSave(pathRef.current, latestContent, true);
         }, AUTO_SAVE_DELAY);
-    }, [isNewNote, isRecycle, doSave]);
+    }, [isNewNote, isRecycle, doSave, viewLayout]);
 
     // 标题编辑相关
     const startEditingTitle = useCallback(() => {
@@ -471,7 +510,7 @@ export function NoteEditor({
                             </Button>
                         </Tooltip>
                     )}
-                    {note && (
+                    {note && viewLayout === "single" && (
                         <Tooltip content={isPreviewMode ? t("ui.note.editNote") : t("ui.note.viewNote")} side="bottom" delay={200}>
                             <Button
                                 onClick={() => {
@@ -487,6 +526,43 @@ export function NoteEditor({
                                 className="rounded-lg sm:rounded-xl h-7 w-7 sm:h-10 sm:w-10"
                             >
                                 {isPreviewMode ? <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                            </Button>
+                        </Tooltip>
+                    )}
+                    {note && !isRecycle && (
+                        <Tooltip content={viewLayout === "split" ? t("ui.note.singlePanel", { defaultValue: "Single panel" }) : t("ui.note.splitPanel", { defaultValue: "Split panel" })} side="bottom" delay={200}>
+                            <Button
+                                onClick={() => {
+                                    if (viewLayout === "single") {
+                                        // 进入分屏：同步最新编辑内容到 state
+                                        const latest = editorRef.current?.getValue() ?? contentRef.current;
+                                        setContent(latest);
+                                        setIsPreviewMode(false);
+                                        setViewLayout("split");
+                                    } else {
+                                        // 退出分屏：同步内容
+                                        const latest = editorRef.current?.getValue() ?? contentRef.current;
+                                        setContent(latest);
+                                        setViewLayout("single");
+                                    }
+                                }}
+                                variant="outline"
+                                size="icon"
+                                className="hidden md:inline-flex rounded-lg sm:rounded-xl h-7 w-7 sm:h-10 sm:w-10"
+                            >
+                                {viewLayout === "split" ? <PanelLeftClose className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Columns2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+                            </Button>
+                        </Tooltip>
+                    )}
+                    {viewLayout === "split" && (
+                        <Tooltip content={t("ui.note.swapPanels", { defaultValue: "Swap panels" })} side="bottom" delay={200}>
+                            <Button
+                                onClick={() => setSplitReversed(prev => !prev)}
+                                variant="outline"
+                                size="icon"
+                                className="rounded-lg sm:rounded-xl h-7 w-7 sm:h-10 sm:w-10"
+                            >
+                                <ArrowLeftRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                         </Tooltip>
                     )}
@@ -520,6 +596,41 @@ export function NoteEditor({
                 {loading ? (
                     <div className="flex items-center justify-center h-full rounded-xl border border-border bg-card">
                         <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+                    </div>
+                ) : viewLayout === "split" ? (
+                    <div className="h-full flex gap-1">
+                        {/* 左侧面板 */}
+                        <div className="flex-1 min-w-0 overflow-visible rounded-xl border border-border bg-card">
+                            <Suspense fallback={<EditorLoading />}>
+                                <MarkdownEditor
+                                    ref={splitReversed ? undefined : editorRef}
+                                    key={`${note?.id}-${splitReversed ? "preview" : "edit"}`}
+                                    value={content}
+                                    onChange={splitReversed ? undefined : handleContentChange}
+                                    readOnly={splitReversed || isRecycle}
+                                    initialMode={splitReversed ? "preview" : "edit"}
+                                    vault={vault}
+                                    fileLinks={originalNote?.fileLinks}
+                                    onWikiLinkClick={onWikiLinkClick}
+                                />
+                            </Suspense>
+                        </div>
+                        {/* 右侧面板 */}
+                        <div className="flex-1 min-w-0 overflow-visible rounded-xl border border-border bg-card">
+                            <Suspense fallback={<EditorLoading />}>
+                                <MarkdownEditor
+                                    ref={splitReversed ? editorRef : undefined}
+                                    key={`${note?.id}-${splitReversed ? "edit" : "preview"}`}
+                                    value={content}
+                                    onChange={splitReversed ? handleContentChange : undefined}
+                                    readOnly={!splitReversed || isRecycle}
+                                    initialMode={splitReversed ? "edit" : "preview"}
+                                    vault={vault}
+                                    fileLinks={originalNote?.fileLinks}
+                                    onWikiLinkClick={onWikiLinkClick}
+                                />
+                            </Suspense>
+                        </div>
                     </div>
                 ) : (
                     <div className="h-full overflow-visible rounded-xl border border-border bg-card">
