@@ -27,6 +27,7 @@ export function LanguageSwitcher({ className, showText = false }: LanguageSwitch
                 <DropdownMenuItem onClick={() => changeLang("zh-TW")}>🇭🇰 繁體中文</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => changeLang("ja")}>🇯🇵 日本語</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => changeLang("ko")}>🇰🇷 한국어</DropdownMenuItem>
+                {/*
                 <DropdownMenuItem onClick={() => changeLang("fr")}>🇫🇷 Français</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => changeLang("de")}>🇩🇪 Deutsch</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => changeLang("es")}>🇪🇸 Español</DropdownMenuItem>
@@ -53,6 +54,7 @@ export function LanguageSwitcher({ className, showText = false }: LanguageSwitch
                 <DropdownMenuItem onClick={() => changeLang("he")}>🇮🇱 עברית</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => changeLang("ne")}>🇳🇵 नेपाली</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => changeLang("sq")}>🇦🇱 Shqip</DropdownMenuItem>
+                */}
             </DropdownMenuContent>
         </DropdownMenu>
     );
