@@ -129,6 +129,7 @@ export function FileManager({
                 vault={vault}
                 note={canvasFile}
                 onBack={handleCanvasBack}
+                isRecycle={isRecycle}
             />
         );
     }

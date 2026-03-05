@@ -18,6 +18,17 @@ function resolveColor(color?: string): string | undefined {
     return CANVAS_COLORS[color] ?? color;
 }
 
+function colorWithOpacity(color: string, opacity: number): string {
+    const hex = color.replace("#", "");
+    if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+        const r = parseInt(hex.slice(0, 2), 16);
+        const g = parseInt(hex.slice(2, 4), 16);
+        const b = parseInt(hex.slice(4, 6), 16);
+        return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+    return color;
+}
+
 function getAnchorPoint(node: CanvasNode, side: string): { x: number; y: number } {
     const cx = node.x + node.width / 2;
     const cy = node.y + node.height / 2;
@@ -66,46 +77,18 @@ function CanvasEdgeComponent({
 
     const pathD = `M ${from.x} ${from.y} C ${from.x + cp1.dx} ${from.y + cp1.dy}, ${to.x + cp2.dx} ${to.y + cp2.dy}, ${to.x} ${to.y}`;
     const color = resolveColor(edge.color);
-    const edgeId = `edge-${edge.id}`;
+    const markerKey = color ?? "default";
     const showToArrow = edge.toEnd !== "none";
     const showFromArrow = edge.fromEnd === "arrow";
 
     return (
         <g>
-            <defs>
-                {showToArrow && (
-                    <marker
-                        id={`${edgeId}-to`}
-                        markerWidth="12"
-                        markerHeight="10"
-                        refX="11"
-                        refY="5"
-                        orient="auto"
-                        markerUnits="userSpaceOnUse"
-                    >
-                        <polygon points="0 0, 12 5, 0 10" fill={color ?? "currentColor"} />
-                    </marker>
-                )}
-                {showFromArrow && (
-                    <marker
-                        id={`${edgeId}-from`}
-                        markerWidth="12"
-                        markerHeight="10"
-                        refX="1"
-                        refY="5"
-                        orient="auto"
-                        markerUnits="userSpaceOnUse"
-                    >
-                        <polygon points="12 0, 0 5, 12 10" fill={color ?? "currentColor"} />
-                    </marker>
-                )}
-            </defs>
             <path
                 d={pathD}
                 className="canvas-edge-path"
                 style={color ? { stroke: color } : undefined}
-                markerEnd={showToArrow ? `url(#${edgeId}-to)` : undefined}
-                markerStart={showFromArrow ? `url(#${edgeId}-from)` : undefined}
+                markerEnd={showToArrow ? `url(#marker-to-${markerKey})` : undefined}
+                markerStart={showFromArrow ? `url(#marker-from-${markerKey})` : undefined}
             />
             {edge.label && (
                 <text
@@ -127,14 +110,16 @@ function CanvasNodeComponent({
     node,
     onNodeClick,
     onWikiLinkClick,
+    isDragRef,
 }: {
     node: CanvasNode;
     onNodeClick?: (node: CanvasNode) => void;
     onWikiLinkClick?: (target: string) => void;
+    isDragRef: { current: boolean };
 }) {
     const color = resolveColor(node.color);
     const nodeStyle = color
-        ? { borderColor: color, backgroundColor: `${color}18` }
+        ? { borderColor: color, backgroundColor: colorWithOpacity(color, 0.09) }
         : undefined;
 
     if (node.type === "group") {
@@ -146,7 +131,7 @@ function CanvasNodeComponent({
                     top: node.y,
                     width: node.width,
                     height: node.height,
-                    ...(color ? { borderColor: color, background: `${color}15` } : {}),
+                    ...(color ? { borderColor: color, background: colorWithOpacity(color, 0.08) } : {}),
                 }}
             >
                 {node.label && <span className="canvas-group-label">{node.label}</span>}
@@ -155,6 +140,7 @@ function CanvasNodeComponent({
     }
 
     const handleClick = () => {
+        if (isDragRef.current) return;
         if (node.type === "file" && node.file && onWikiLinkClick) {
             onWikiLinkClick(node.file);
         } else if (node.type === "link" && node.url) {
@@ -202,6 +188,7 @@ function CanvasNodeComponent({
 
 const MIN_ZOOM = 0.1;
 const MAX_ZOOM = 3.0;
+const DRAG_THRESHOLD = 3;
 
 export function CanvasRenderer({
     nodes,
@@ -214,6 +201,7 @@ export function CanvasRenderer({
     const containerRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const dragStartRef = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
+    const hasDraggedRef = useRef(false);
     const pointerCacheRef = useRef<PointerEvent[]>([]);
     const lastPinchDistRef = useRef<number | null>(null);
 
@@ -244,6 +232,17 @@ export function CanvasRenderer({
             h: maxY - minY + pad * 2,
         };
     }, [nodes]);
+
+    // Shared marker defs: one set per unique edge color
+    const markerColors = useMemo(() => {
+        const colors = new Map<string, string>();
+        colors.set("default", "currentColor");
+        for (const e of edges) {
+            const c = resolveColor(e.color);
+            if (c) colors.set(c, c);
+        }
+        return colors;
+    }, [edges]);
 
     const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
@@ -280,6 +279,7 @@ export function CanvasRenderer({
 
         if (cache.length === 1) {
             setIsDragging(true);
+            hasDraggedRef.current = false;
             dragStartRef.current = { x: e.clientX, y: e.clientY, vx: viewport.x, vy: viewport.y };
             (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
         }
@@ -315,6 +315,9 @@ export function CanvasRenderer({
         } else if (cache.length === 1 && dragStartRef.current) {
             const dx = e.clientX - dragStartRef.current.x;
             const dy = e.clientY - dragStartRef.current.y;
+            if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+                hasDraggedRef.current = true;
+            }
             onViewportChange({
                 ...viewport,
                 x: dragStartRef.current.vx + dx,
@@ -369,6 +372,7 @@ export function CanvasRenderer({
                         node={node}
                         onNodeClick={onNodeClick}
                         onWikiLinkClick={onWikiLinkClick}
+                        isDragRef={hasDraggedRef}
                     />
                 ))}
 
@@ -384,6 +388,34 @@ export function CanvasRenderer({
                     }}
                     viewBox={`${svgBounds.minX} ${svgBounds.minY} ${svgBounds.w} ${svgBounds.h}`}
                 >
+                    <defs>
+                        {Array.from(markerColors.entries()).map(([key, fill]) => (
+                            <g key={key}>
+                                <marker
+                                    id={`marker-to-${key}`}
+                                    markerWidth="12"
+                                    markerHeight="10"
+                                    refX="11"
+                                    refY="5"
+                                    orient="auto"
+                                    markerUnits="userSpaceOnUse"
+                                >
+                                    <polygon points="0 0, 12 5, 0 10" fill={fill} />
+                                </marker>
+                                <marker
+                                    id={`marker-from-${key}`}
+                                    markerWidth="12"
+                                    markerHeight="10"
+                                    refX="1"
+                                    refY="5"
+                                    orient="auto"
+                                    markerUnits="userSpaceOnUse"
+                                >
+                                    <polygon points="12 0, 0 5, 12 10" fill={fill} />
+                                </marker>
+                            </g>
+                        ))}
+                    </defs>
                     {edges.map(edge => (
                         <CanvasEdgeComponent
                             key={edge.id}
@@ -400,6 +432,7 @@ export function CanvasRenderer({
                         node={node}
                         onNodeClick={onNodeClick}
                         onWikiLinkClick={onWikiLinkClick}
+                        isDragRef={hasDraggedRef}
                     />
                 ))}
             </div>

@@ -254,7 +254,7 @@ export function FileList({ vault, vaults, onVaultChange, isRecycle = false, page
      */
     const handleItemClick = (file: FileDTO) => {
         // .canvas 文件直接在 FileManager 中打开 CanvasViewer
-        if (file.path.endsWith(".canvas") && onCanvasOpen) {
+        if (file.path.toLowerCase().endsWith(".canvas") && onCanvasOpen) {
             onCanvasOpen({ path: file.path, pathHash: file.pathHash });
             return;
         }

@@ -12,12 +12,22 @@ interface CanvasViewerProps {
     note?: { path: string; pathHash?: string };
     onBack: () => void;
     onWikiLinkClick?: (target: string) => void;
+    isRecycle?: boolean;
 }
 
 function parseCanvasData(raw: string): CanvasData {
     const data = JSON.parse(raw);
+    const nodes = Array.isArray(data.nodes)
+        ? data.nodes.map((n: Record<string, unknown>) => ({
+            ...n,
+            x: Number(n.x) || 0,
+            y: Number(n.y) || 0,
+            width: Number(n.width) || 100,
+            height: Number(n.height) || 50,
+        }))
+        : [];
     return {
-        nodes: Array.isArray(data.nodes) ? data.nodes : [],
+        nodes,
         edges: Array.isArray(data.edges) ? data.edges : [],
     };
 }
@@ -60,6 +70,7 @@ export function CanvasViewer({
     note,
     onBack,
     onWikiLinkClick,
+    isRecycle,
 }: CanvasViewerProps) {
     const { getRawFileUrl } = useFileHandle();
     const [canvasData, setCanvasData] = useState<CanvasData | null>(null);
@@ -112,8 +123,11 @@ export function CanvasViewer({
         setLoading(true);
         setError(null);
 
-        const url = getRawFileUrl(vault, note.path, note.pathHash);
-        fetch(url)
+        let url = getRawFileUrl(vault, note.path, note.pathHash);
+        if (isRecycle) {
+            url += (url.includes("?") ? "&" : "?") + "isRecycle=1";
+        }
+        fetch(url, { cache: "no-store" })
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.text();
@@ -138,7 +152,7 @@ export function CanvasViewer({
             });
 
         return () => { cancelled = true; };
-    }, [vault, note, getRawFileUrl]);
+    }, [vault, note, getRawFileUrl, isRecycle]);
 
     // Fit to view when data loads or container resizes
     useEffect(() => {
@@ -148,7 +162,7 @@ export function CanvasViewer({
     }, [canvasData, containerSize]);
 
     const handleFitView = useCallback(() => {
-        if (canvasData && containerSize.w > 0) {
+        if (canvasData && containerSize.w > 0 && containerSize.h > 0) {
             setViewport(computeFitViewport(canvasData.nodes, containerSize.w, containerSize.h));
         }
     }, [canvasData, containerSize]);
