@@ -56,3 +56,14 @@ export interface NoteHistoryListResponse {
     list: NoteHistory[]
     pager: Pager
 }
+
+/**
+ * 笔记重命名请求
+ */
+export interface NoteRenameRequest {
+    vault: string;
+    oldPath: string;
+    path: string;
+    oldPathHash?: string;
+    pathHash?: string;
+}

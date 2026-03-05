@@ -64,7 +64,7 @@ export function NoteEditor({
     void _isMaximized;
     void _onToggleMaximize;
     const { t } = useTranslation();
-    const { handleGetNote, handleSaveNote } = useNoteHandle();
+    const { handleGetNote, handleSaveNote, handleRenameNote } = useNoteHandle();
     const editorRef = useRef<MarkdownEditorRef>(null);
     const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -111,15 +111,11 @@ export function NoteEditor({
 
         const fullPath = currentPath.endsWith(".md") ? currentPath : currentPath + ".md";
 
-        const options: { pathHash?: string; srcPath?: string; srcPathHash?: string; contentHash?: string } = {
+        const options: { pathHash?: string; contentHash?: string } = {
             pathHash: hashCode(fullPath),
             contentHash: hashCode(currentContent)
         };
 
-        if (originalNote) {
-            options.srcPath = originalNote.path;
-            options.srcPathHash = hashCode(originalNote.path);
-        }
 
         setSaving(true);
         handleSaveNote(vault, fullPath, currentContent, options, () => {
@@ -283,7 +279,6 @@ export function NoteEditor({
         setIsEditingTitle(false);
         setEditingTitleValue("");
     }, []);
-
     const saveTitle = useCallback(() => {
         // 只过滤文件系统非法字符，保留空格
         const sanitized = editingTitleValue
@@ -298,15 +293,45 @@ export function NoteEditor({
         }
 
         const oldPath = path;
-        updatePath(sanitized);
-        setIsEditingTitle(false);
+        const oldFullPath = oldPath.endsWith(".md") ? oldPath : oldPath + ".md";
+        const newFullPath = sanitized.endsWith(".md") ? sanitized : sanitized + ".md";
 
-        // 如果路径变化了，保存笔记
-        if (sanitized !== oldPath) {
-            const currentContent = editorRef.current?.getValue() ?? contentRef.current;
-            doSave(sanitized, currentContent, true);
+        if (newFullPath === oldFullPath) {
+            setIsEditingTitle(false);
+            return;
         }
-    }, [editingTitleValue, path, doSave, cancelEditingTitle, updatePath]);
+
+        if (isNewNote) {
+            updatePath(sanitized);
+            setIsEditingTitle(false);
+            return;
+        }
+
+        setSaving(true);
+        handleRenameNote({
+            vault,
+            oldPath: oldFullPath,
+            path: newFullPath,
+            oldPathHash: originalNote?.pathHash
+        }, () => {
+            setSaving(false);
+            updatePath(sanitized);
+            setIsEditingTitle(false);
+            setLastSavedAt(new Date());
+
+            // 重要：刷新 originalNote 信息，确保后续保存使用新路径
+            if (originalNote) {
+                setOriginalNote({
+                    ...originalNote,
+                    path: newFullPath,
+                    pathHash: hashCode(newFullPath)
+                });
+            }
+
+            // 通知父组件路径变化
+            onSaveSuccess(newFullPath, hashCode(newFullPath));
+        });
+    }, [editingTitleValue, path, vault, originalNote, handleRenameNote, updatePath, isNewNote, onSaveSuccess, cancelEditingTitle]);
 
     const handleTitleKeyDown = useCallback((e: React.KeyboardEvent) => {
         if (e.key === "Enter") {

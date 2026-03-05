@@ -1,4 +1,4 @@
-import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch } from "lucide-react";
+import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -45,7 +45,7 @@ interface NoteListProps {
 
 export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap }: NoteListProps) {
     const { t } = useTranslation();
-    const { handleNoteList, handleDeleteNote, handleRestoreNote, handleFolderList, handleFolderNotes, handlePermanentDeleteNote, handleClearNoteRecycle } = useNoteHandle();
+    const { handleNoteList, handleDeleteNote, handleRestoreNote, handleFolderList, handleFolderNotes, handlePermanentDeleteNote, handleClearNoteRecycle, handleRenameNote } = useNoteHandle();
     const { openConfirmDialog } = useConfirmDialog();
     const [notes, setNotes] = useState<Note[]>([]);
     const [loading, setLoading] = useState(false);
@@ -178,6 +178,50 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                 fetchNotes();
             });
         });
+    };
+
+    /**
+     * 重命名笔记
+     */
+    const onRename = (e: React.MouseEvent, note: Note) => {
+        e.stopPropagation();
+        const fullFileName = note.path.split("/").pop() || "";
+        const extension = fullFileName.includes(".") ? fullFileName.substring(fullFileName.lastIndexOf(".")) : ".md";
+        const baseName = fullFileName.includes(".") ? fullFileName.substring(0, fullFileName.lastIndexOf(".")) : fullFileName;
+        let newName = baseName;
+
+        openConfirmDialog(
+            t("ui.note.renameNote"),
+            "confirm",
+            () => {
+                if (!newName || newName === baseName) return;
+
+                const finalName = newName.endsWith(extension) ? newName : newName + extension;
+
+                const oldDir = note.path.includes("/")
+                    ? note.path.substring(0, note.path.lastIndexOf("/") + 1)
+                    : "";
+
+                handleRenameNote({
+                    vault,
+                    oldPath: note.path,
+                    path: oldDir + finalName,
+                    oldPathHash: note.pathHash
+                }, () => {
+                    fetchNotes();
+                });
+            },
+            <div className="pt-2">
+                <Input
+                    autoFocus
+                    defaultValue={baseName}
+                    placeholder={t("ui.note.renameNotePlaceholder")}
+                    onChange={(e) => {
+                        newName = e.target.value;
+                    }}
+                />
+            </div>
+        );
     };
 
     const toggleSelectAll = () => {
@@ -742,6 +786,18 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                 <History className="h-4 w-4" />
                                             </Button>
                                         </Tooltip>
+                                        {!isRecycle && (
+                                            <Tooltip content={t("ui.common.rename")} side="top" delay={200}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl text-muted-foreground hover:text-blue-500"
+                                                    onClick={(e) => onRename(e, note)}
+                                                >
+                                                    <TextCursorInput className="h-4 w-4" />
+                                                </Button>
+                                            </Tooltip>
+                                        )}
                                         {!isRecycle && (
                                             <Tooltip content={t("ui.common.delete")} side="top" delay={200}>
                                                 <Button

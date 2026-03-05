@@ -1,5 +1,5 @@
+import { FileListResponse, FileRenameRequest } from "@/lib/types/file";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
-import { FileListResponse } from "@/lib/types/file";
 import { toast } from "@/components/common/Toast";
 import { getBrowserLang } from "@/i18n/utils";
 import { useCallback, useMemo } from "react";
@@ -257,6 +257,38 @@ export function useFileHandle() {
     }, [getHeaders]);
 
     /**
+     * 重命名附件
+     */
+    const handleRenameFile = useCallback(async (
+        request: FileRenameRequest,
+        callback: () => void
+    ) => {
+        try {
+            const apiUrl = env.API_URL.endsWith("/") ? env.API_URL.slice(0, -1) : env.API_URL;
+            const response = await fetch(addCacheBuster(`${apiUrl}/api/file/rename`), {
+                method: "POST",
+                body: JSON.stringify(request),
+                headers: getHeaders(),
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            const res: { code: number; message: string } = await response.json();
+
+            if (res.code > 0 && res.code <= 200) {
+                toast.success(res.message);
+                callback();
+            } else {
+                toast.error(res.message);
+            }
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : String(error));
+        }
+    }, [getHeaders]);
+
+    /**
      * 获取文件原始内容 URL (带 token)
      */
     const getRawFileUrl = useCallback((vault: string, path: string, pathHash?: string) => {
@@ -378,6 +410,7 @@ export function useFileHandle() {
         handlePermanentDeleteFile,
         handleClearFileRecycle,
         handleRestoreFile,
+        handleRenameFile,
         getRawFileUrl,
         handleFolderList,
         handleFolderFiles,
@@ -387,6 +420,7 @@ export function useFileHandle() {
         handlePermanentDeleteFile,
         handleClearFileRecycle,
         handleRestoreFile,
+        handleRenameFile,
         getRawFileUrl,
         handleFolderList,
         handleFolderFiles,

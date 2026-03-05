@@ -1,4 +1,4 @@
-import { FileText, Trash2, RefreshCw, Search, X, Calendar, Clock, SortDesc, SortAsc, Paperclip, Image, Music, Video, FileCode, RotateCcw, ChevronLeft, ChevronRight, Folder as FolderIcon } from "lucide-react";
+import { FileText, Trash2, RefreshCw, Search, X, Calendar, Clock, SortDesc, SortAsc, Paperclip, Image, Music, Video, FileCode, RotateCcw, ChevronLeft, ChevronRight, Folder as FolderIcon, TextCursorInput } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
 import { useFileHandle } from "@/components/api-handle/file-handle";
@@ -54,7 +54,7 @@ function formatFileSize(bytes: number): string {
 
 export function FileList({ vault, vaults, onVaultChange, isRecycle = false, page, setPage, pageSize, setPageSize, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap, onCanvasOpen }: FileListProps) {
     const { t } = useTranslation();
-    const { handleFileList, handleDeleteFile, handleRestoreFile, getRawFileUrl, handleFolderFiles, handleFolderList, handlePermanentDeleteFile, handleClearFileRecycle } = useFileHandle();
+    const { handleFileList, handleDeleteFile, handleRestoreFile, getRawFileUrl, handleFolderFiles, handleFolderList, handlePermanentDeleteFile, handleClearFileRecycle, handleRenameFile } = useFileHandle();
     const { openConfirmDialog } = useConfirmDialog();
     const [files, setFiles] = useState<FileDTO[]>([]);
     const [loading, setLoading] = useState(false);
@@ -155,6 +155,51 @@ export function FileList({ vault, vaults, onVaultChange, isRecycle = false, page
                 fetchFiles();
             });
         });
+    };
+
+    /**
+     * 重命名附件
+     */
+    const onRename = (e: React.MouseEvent, file: FileDTO) => {
+        e.stopPropagation();
+        const fullFileName = file.path.split("/").pop() || "";
+        const lastDotIndex = fullFileName.lastIndexOf(".");
+        const extension = lastDotIndex !== -1 ? fullFileName.substring(lastDotIndex) : "";
+        const baseName = lastDotIndex !== -1 ? fullFileName.substring(0, lastDotIndex) : fullFileName;
+        let newName = baseName;
+
+        openConfirmDialog(
+            t("ui.file.renameFile"),
+            "confirm",
+            () => {
+                if (!newName || newName === baseName) return;
+
+                const finalName = newName.endsWith(extension) ? newName : newName + extension;
+
+                const oldDir = file.path.includes("/")
+                    ? file.path.substring(0, file.path.lastIndexOf("/") + 1)
+                    : "";
+
+                handleRenameFile({
+                    vault,
+                    oldPath: file.path,
+                    path: oldDir + finalName,
+                    oldPathHash: file.pathHash
+                }, () => {
+                    fetchFiles();
+                });
+            },
+            <div className="pt-2">
+                <Input
+                    autoFocus
+                    defaultValue={baseName}
+                    placeholder={t("ui.file.renameFilePlaceholder")}
+                    onChange={(e) => {
+                        newName = e.target.value;
+                    }}
+                />
+            </div>
+        );
     };
 
     const toggleSelectAll = () => {
@@ -693,16 +738,28 @@ export function FileList({ vault, vaults, onVaultChange, isRecycle = false, page
                                     {/* 右侧：操作按钮 */}
                                     <div className="flex items-center gap-1 shrink-0">
                                         {!isRecycle && (
-                                            <Tooltip content={t("ui.common.delete")} side="top" delay={200}>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive"
-                                                    onClick={(e) => onDelete(e, file)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </Tooltip>
+                                            <>
+                                                <Tooltip content={t("ui.common.rename")} side="top" delay={200}>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 rounded-xl text-muted-foreground hover:text-blue-500"
+                                                        onClick={(e) => onRename(e, file)}
+                                                    >
+                                                        <TextCursorInput className="h-4 w-4" />
+                                                    </Button>
+                                                </Tooltip>
+                                                <Tooltip content={t("ui.common.delete")} side="top" delay={200}>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive"
+                                                        onClick={(e) => onDelete(e, file)}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </Tooltip>
+                                            </>
                                         )}
                                         {isRecycle && (
                                             <>

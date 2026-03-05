@@ -1,4 +1,4 @@
-import { Note, NoteDetail, NoteResponse, NoteHistoryDetail, NoteHistoryListResponse, NoteListResponse } from "@/lib/types/note";
+import { Note, NoteDetail, NoteResponse, NoteHistoryDetail, NoteHistoryListResponse, NoteListResponse, NoteRenameRequest } from "@/lib/types/note";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
 import { toast } from "@/components/common/Toast";
 import { getBrowserLang } from "@/i18n/utils";
@@ -141,11 +141,14 @@ export function useNoteHandle() {
         silent: boolean = false
     ) => {
         try {
+            const { srcPath, srcPathHash, ...validOptions } = options || {}
+            void srcPath
+            void srcPathHash
             const body = {
                 vault,
                 path,
                 content,
-                ...options,
+                ...validOptions,
             }
             const response = await fetch(addCacheBuster(`${env.API_URL}/api/note`), {
                 method: "POST",
@@ -262,6 +265,31 @@ export function useNoteHandle() {
             const response = await fetch(addCacheBuster(`${env.API_URL}/api/note/restore`), {
                 method: "PUT",
                 body: JSON.stringify(body),
+                headers: getHeaders(),
+            })
+            if (!response.ok) {
+                throw new Error("Network response was not ok")
+            }
+            const res: NoteResponse<unknown> = await response.json()
+            if (res.code > 0 && res.code <= 200) {
+                toast.success(res.message)
+                callback()
+            } else {
+                toast.error(res.message + (res.details ? ": " + res.details.join(", ") : ""))
+            }
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : String(error))
+        }
+    }, [getHeaders])
+
+    const handleRenameNote = useCallback(async (
+        request: NoteRenameRequest,
+        callback: () => void
+    ) => {
+        try {
+            const response = await fetch(addCacheBuster(`${env.API_URL}/api/note/rename`), {
+                method: "POST",
+                body: JSON.stringify(request),
                 headers: getHeaders(),
             })
             if (!response.ok) {
@@ -472,6 +500,7 @@ export function useNoteHandle() {
         handlePermanentDeleteNote,
         handleClearNoteRecycle,
         handleRestoreNote,
+        handleRenameNote,
         handleNoteHistoryList,
         handleNoteHistoryDetail,
         handleRestoreFromHistory,
@@ -485,6 +514,7 @@ export function useNoteHandle() {
         handlePermanentDeleteNote,
         handleClearNoteRecycle,
         handleRestoreNote,
+        handleRenameNote,
         handleNoteHistoryList,
         handleNoteHistoryDetail,
         handleRestoreFromHistory,
