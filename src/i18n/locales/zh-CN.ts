@@ -55,6 +55,7 @@ export default {
     "ui.common.noSearchResults": "没有找到匹配的结果",
     "ui.common.selectAll": "全选",
     "ui.common.items": "条",
+    "ui.common.count": "个",
     "ui.common.selectVault": "选择笔记库",
     "ui.common.sourceCode": "源代码",
 
@@ -379,6 +380,14 @@ export default {
     "ui.system.numGc": "GC 次数",
     "ui.system.createdAt": "创建时间",
     "ui.system.updatedAt": "更新时间",
+    "ui.system.websocketClients": "在线客户端",
+    "ui.system.wsNickname": "昵称",
+    "ui.system.wsClientName": "客户端",
+    "ui.system.wsClientType": "类型",
+    "ui.system.wsRemoteAddr": "地址",
+    "ui.system.wsStartTime": "连接时间",
+    "ui.system.wsTraceId": "追踪 ID",
+    "ui.system.wsNoClients": "暂无在线客户端",
 
     // --- ui.storage ---
     "ui.storage.management": "存储配置",

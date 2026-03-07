@@ -16,6 +16,10 @@ export function Overview({ refreshKey, children }: { refreshKey?: number, childr
         }
     }, [refreshKey, refreshSystemInfo])
 
+    const handleRefreshAll = () => {
+        refreshSystemInfo()
+    }
+
     if (systemLoading && !systemInfo) {
         return (
             <div className="flex items-center justify-center p-12 bg-card rounded-xl border border-border">
@@ -44,7 +48,7 @@ export function Overview({ refreshKey, children }: { refreshKey?: number, childr
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => refreshSystemInfo()}
+                    onClick={() => handleRefreshAll()}
                     disabled={systemLoading}
                     className="h-8 w-8 rounded-full hover:bg-muted"
                 >

@@ -237,7 +237,7 @@ function App() {
     switch (currentModule) {
       case "dashboard":
         return (
-          <SystemSettings isDashboard={true} onBack={handleNavigateToVaults} />
+          <SystemSettings isDashboard={true} isAdmin={isAdmin} onBack={handleNavigateToVaults} />
         )
 
       case "notes":

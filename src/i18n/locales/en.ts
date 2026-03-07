@@ -55,6 +55,7 @@ export default {
     "ui.common.noSearchResults": "No matching results found",
     "ui.common.selectAll": "Select All",
     "ui.common.items": "items",
+    "ui.common.count": "pcs",
     "ui.common.selectVault": "Select Vault",
     "ui.common.sourceCode": "Source Code",
 
@@ -359,6 +360,14 @@ export default {
     "ui.system.numGc": "GC Count",
     "ui.system.createdAt": "Created At",
     "ui.system.updatedAt": "Updated At",
+    "ui.system.websocketClients": "Online Clients",
+    "ui.system.wsNickname": "Nickname",
+    "ui.system.wsClientName": "Client",
+    "ui.system.wsClientType": "Type",
+    "ui.system.wsRemoteAddr": "Address",
+    "ui.system.wsStartTime": "Connection Time",
+    "ui.system.wsTraceId": "Trace ID",
+    "ui.system.wsNoClients": "No online clients",
 
     // --- ui.storage ---
     "ui.storage.management": "Storage Config",

@@ -13,6 +13,7 @@ import { getBrowserLang } from "@/i18n/utils";
 import env from "@/env.ts";
 
 import { VersionOverview } from "./version-overview";
+import { WSClientList } from "./ws-client-list";
 import { SupportList } from "./support-list";
 import { Overview } from "./overview";
 
@@ -45,7 +46,7 @@ interface CloudflareConfig {
     logEnabled: boolean
 }
 
-export function SystemSettings({ onBack, isDashboard = false }: { onBack?: () => void, isDashboard?: boolean }) {
+export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }: { onBack?: () => void, isDashboard?: boolean, isAdmin?: boolean }) {
     const { t } = useTranslation()
     const [config, setConfig] = useState<SystemConfig | null>(null)
     const [ngrokConfig, setNgrokConfig] = useState<NgrokConfig | null>(null)
@@ -404,6 +405,11 @@ export function SystemSettings({ onBack, isDashboard = false }: { onBack?: () =>
                             </div>
                         </div>
                     </Overview>
+                )}
+
+                {/* 看板模式下的 在线客户端 列表 */}
+                {isDashboard && isAdmin && (
+                    <WSClientList />
                 )}
 
                 {/* 看板模式下的 帮助与建议 Box */}

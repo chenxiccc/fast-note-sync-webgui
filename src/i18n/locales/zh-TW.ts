@@ -55,6 +55,7 @@ export default {
     "ui.common.noSearchResults": "沒有找到匹配的結果",
     "ui.common.selectAll": "全選",
     "ui.common.items": "條",
+    "ui.common.count": "個",
 
 
     // --- ui.auth ---
@@ -352,6 +353,14 @@ export default {
     "ui.system.numGc": "GC 次數",
     "ui.system.createdAt": "創建時間",
     "ui.system.updatedAt": "更新時間",
+    "ui.system.websocketClients": "在線客戶端",
+    "ui.system.wsNickname": "暱稱",
+    "ui.system.wsClientName": "客戶端",
+    "ui.system.wsClientType": "類型",
+    "ui.system.wsRemoteAddr": "地址",
+    "ui.system.wsStartTime": "連接時間",
+    "ui.system.wsTraceId": "追踪 ID",
+    "ui.system.wsNoClients": "暫無在線客戶端",
 
     // --- ui.storage ---
     "ui.storage.management": "存儲配置",
