@@ -13,7 +13,7 @@ import { create } from 'zustand';
  * - sync: 远端备份（计划中）
  * - git: Git 自动化（计划中）
  */
-export type ModuleId = 'dashboard' | 'vaults' | 'notes' | 'files' | 'trash' | 'config' | 'sync' | 'git' | 'settings';
+export type ModuleId = 'dashboard' | 'vaults' | 'notes' | 'files' | 'trash' | 'shares' | 'config' | 'sync' | 'git' | 'settings';
 
 /**
  * 应用状态接口

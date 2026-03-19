@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { getBrowserLang } from "@/i18n/utils";
 import env from "@/env.ts";
 import { handleFontsUpdate } from "@/lib/utils/font-loader";
+import type { VaultType } from "@/lib/types/vault";
 
 
 // 懒加载核心业务模块
@@ -22,6 +23,7 @@ const AuthForm = lazy(() => import("@/components/user/auth-form").then(m => ({ d
 const SyncBackup = lazy(() => import("@/components/layout/sync-backup").then(m => ({ default: m.SyncBackup })));
 const GitAutomation = lazy(() => import("@/components/layout/git-automation").then(m => ({ default: m.GitAutomation })));
 const SettingManager = lazy(() => import("@/components/setting/setting-manager").then(m => ({ default: m.SettingManager })));
+const ShareManager = lazy(() => import("@/components/share/share-manager").then(m => ({ default: m.ShareManager })));
 
 // 加载占位符
 const PageLoading = () => (
@@ -53,6 +55,7 @@ function App() {
   useUrlSync(activeVault, setActiveVault)
 
   const [vaultsLoaded, setVaultsLoaded] = useState(false)
+  const [vaultList, setVaultList] = useState<VaultType[]>([])
   const [registerIsEnable, setRegisterIsEnable] = useState(true)
   const [adminUid, setAdminUid] = useState<number | null>(null)
   const [configLoaded, setConfigLoaded] = useState(false)
@@ -67,7 +70,7 @@ function App() {
   }, [isLoggedIn, handleUserInfo, logout])
 
   useEffect(() => {
-    if ((currentModule !== "notes" && currentModule !== "files" && currentModule !== "trash" && currentModule !== "settings") || !isLoggedIn) return
+    if ((currentModule !== "notes" && currentModule !== "files" && currentModule !== "trash" && currentModule !== "settings" && currentModule !== "shares") || !isLoggedIn) return
 
     let isMounted = true
     setVaultsLoaded(false)
@@ -84,6 +87,7 @@ function App() {
             if (!vaultExists) {
               setActiveVault(vaults[0].vault)
             }
+            setVaultList(vaults)
             setVaultsLoaded(true)
             return
           }
@@ -274,6 +278,9 @@ function App() {
 
       case "sync":
         return <SyncBackup />
+
+      case "shares":
+        return <ShareManager vault={activeVault || ""} vaults={vaultList} onVaultChange={setActiveVault} />
 
       case "git":
         return <GitAutomation />
