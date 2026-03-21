@@ -22,9 +22,9 @@ export default defineConfig({
     },
   },
   server: {
-    // 处理开发环境下的路径重写，使 /share.html/id/token 能够加载 share.html
+    // 处理开发环境下的路径重写，使 /share.html/id/token 或 /share/id/token 能够加载 share.html
     proxy: {
-       '^/share.html/.*': {
+       '^/(share.html|share)/.*': {
           target: 'http://localhost:5173',
           rewrite: () => '/share.html',
        }

@@ -1,4 +1,4 @@
-import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput } from "lucide-react";
+import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput, Share2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Folder } from "@/lib/types/folder";
 import { Note } from "@/lib/types/note";
 import { format } from "date-fns";
+import { ShareModal } from "@/components/share/share-modal";
 
 
 type SearchMode = "path" | "content" | "regex";
@@ -61,6 +62,8 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const [folders, setFolders] = useState<Folder[]>([]);
     const noteRequestIdRef = useRef(0);
     const { trashType, setModule } = useAppStore();
+    const [shareModalOpen, setShareModalOpen] = useState(false);
+    const [selectedShareNote, setSelectedShareNote] = useState<Note | null>(null);
 
     // Debounce search keyword
     useEffect(() => {
@@ -799,6 +802,22 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                             </Tooltip>
                                         )}
                                         {!isRecycle && (
+                                            <Tooltip content={t("ui.share.title")} side="top" delay={200}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl text-muted-foreground hover:text-primary"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedShareNote(note);
+                                                        setShareModalOpen(true);
+                                                    }}
+                                                >
+                                                    <Share2 className="h-4 w-4" />
+                                                </Button>
+                                            </Tooltip>
+                                        )}
+                                        {!isRecycle && (
                                             <Tooltip content={t("ui.common.delete")} side="top" delay={200}>
                                                 <Button
                                                     variant="ghost"
@@ -890,6 +909,16 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                         </Button>
                     </div>
                 </div>
+            )}
+
+            {selectedShareNote && (
+                <ShareModal
+                    vault={vault}
+                    path={selectedShareNote.path}
+                    pathHash={selectedShareNote.pathHash}
+                    open={shareModalOpen}
+                    onOpenChange={setShareModalOpen}
+                />
             )}
         </div>
     );

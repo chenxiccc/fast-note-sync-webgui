@@ -1,4 +1,4 @@
-import { FileText, RefreshCw, Calendar, Clock, History, SortDesc, SortAsc, Share2, Link2Off, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
+import { RefreshCw, Calendar, Clock, History, SortDesc, SortAsc, Share2, Link2Off, ExternalLink, ChevronLeft, ChevronRight } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -7,14 +7,14 @@ import { useState, useEffect, useCallback } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
+import { toast } from "@/components/common/Toast";
 import type { ShareItem } from "@/lib/types/share";
 import type { VaultType } from "@/lib/types/vault";
 import { format } from "date-fns";
-import env from "@/env";
 
 
 type TabType = "all" | "active" | "ended";
-type SortBy = "mtime" | "ctime" | "path" | "share_start" | "share_end";
+type SortBy = "mtime" | "ctime" | "share_start" | "share_end";
 type SortOrder = "desc" | "asc";
 
 interface ShareManagerProps {
@@ -35,14 +35,26 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
     const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(20);
+    const [totalRows, setTotalRows] = useState(0);
 
     const fetchShares = useCallback(() => {
         setLoading(true);
-        handleShareList((data) => {
-            setAllItems(data.items ?? []);
+        // 映射前端排序到后端参数
+        let serverSortBy = "created_at";
+        if (sortBy === "share_end") serverSortBy = "expires_at";
+        if (sortBy === "mtime") serverSortBy = "updated_at";
+        
+        handleShareList({
+            page,
+            pageSize,
+            sort_by: serverSortBy,
+            sort_order: sortOrder
+        }, (data) => {
+            setAllItems(data.list ?? []);
+            setTotalRows(data.pager?.totalRows ?? 0);
             setLoading(false);
         });
-    }, [handleShareList]);
+    }, [handleShareList, page, pageSize, sortBy, sortOrder]);
 
     useEffect(() => {
         fetchShares();
@@ -57,46 +69,16 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
         return new Date(item.expires_at) <= new Date();
     };
 
+    // 后端如果不支持状态过滤，前端继续过滤。但这样分页会有问题。
+    // 如果后端支持状态过滤，应传给接口。目前文档未见状态参数，先保持前端过滤以防万一，但优先使用 server 数据。
     const filteredItems = allItems.filter((item) => {
-        if (vault && item.note_info?.vault_name && item.note_info.vault_name !== vault) return false;
         if (tab === "active") return !isEnded(item);
         if (tab === "ended") return isEnded(item);
         return true;
     });
 
-    const sortedItems = [...filteredItems].sort((a, b) => {
-        let valA: number;
-        let valB: number;
-
-        switch (sortBy) {
-            case "mtime":
-                valA = a.note_info?.mtime ?? 0;
-                valB = b.note_info?.mtime ?? 0;
-                break;
-            case "ctime":
-                valA = a.note_info?.ctime ?? 0;
-                valB = b.note_info?.ctime ?? 0;
-                break;
-            case "path":
-                return sortOrder === "desc"
-                    ? (b.note_info?.path ?? "").localeCompare(a.note_info?.path ?? "")
-                    : (a.note_info?.path ?? "").localeCompare(b.note_info?.path ?? "");
-            case "share_end":
-                valA = new Date(a.expires_at).getTime();
-                valB = new Date(b.expires_at).getTime();
-                break;
-            case "share_start":
-            default:
-                valA = new Date(a.created_at).getTime();
-                valB = new Date(b.created_at).getTime();
-                break;
-        }
-
-        return sortOrder === "desc" ? valB - valA : valA - valB;
-    });
-
-    const totalPages = Math.max(1, Math.ceil(sortedItems.length / pageSize));
-    const pagedItems = sortedItems.slice((page - 1) * pageSize, page * pageSize);
+    const totalPages = Math.max(1, Math.ceil(totalRows / pageSize));
+    const pagedItems = filteredItems; // 接口已经返回了当前页的数据
 
     const handlePageChange = (newPage: number) => {
         if (newPage >= 1 && newPage <= totalPages) setPage(newPage);
@@ -104,19 +86,29 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
 
     const onCancelShare = (e: React.MouseEvent, item: ShareItem) => {
         e.stopPropagation();
+        // 优先通过 id 取消；vault 优先从 note_info 中取，再回退到当前选中的 vault
+        const itemVault = item.note_info?.vault_name || vault;
+        if (!itemVault) {
+            toast.error("Cannot determine vault for this share");
+            return;
+        }
         openConfirmDialog(t("ui.share.cancelConfirm"), "confirm", () => {
-            handleCancelShare(item.id, () => {
+            handleCancelShare({ id: item.id, vault: itemVault }, () => {
                 fetchShares();
             });
         });
     };
 
-    const onViewShare = (e: React.MouseEvent, item: ShareItem) => {
+    const onViewShare = useCallback((e: React.MouseEvent, item: ShareItem) => {
         e.stopPropagation();
-        if (!item.token || !item.note_info) return;
-        const base = env.API_URL.endsWith("/") ? env.API_URL.slice(0, -1) : env.API_URL;
-        window.open(`${base}/share/${item.note_info.id}/${item.token}`, "_blank");
-    };
+        if (!item.id || !item.token) {
+            toast.error("Share data is incomplete");
+            return;
+        }
+        // 使用与 ShareModal 一致的链接格式
+        const fullUrl = `${window.location.origin}/share/${item.id}/${item.token}`;
+        window.open(fullUrl, "_blank");
+    }, []);
 
 
     return (
@@ -166,7 +158,7 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
                         ))}
                     </div>
                     <span className="text-sm font-medium text-muted-foreground">
-                        {sortedItems.length} {t("ui.share.shareCount")}
+                        {totalRows} {t("ui.share.shareCount")}
                     </span>
                 </div>
 
@@ -177,7 +169,6 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
                             <button className="px-3 h-full text-xs flex items-center gap-1.5 transition-colors hover:bg-muted">
                                 {sortBy === "mtime" && <><Clock className="h-3.5 w-3.5" />{t("ui.note.sortByMtime")}</>}
                                 {sortBy === "ctime" && <><Calendar className="h-3.5 w-3.5" />{t("ui.note.sortByCtime")}</>}
-                                {sortBy === "path" && <><FileText className="h-3.5 w-3.5" />{t("ui.note.sortByPath")}</>}
                                 {sortBy === "share_start" && <><Share2 className="h-3.5 w-3.5" />{t("ui.share.sortByShareStart")}</>}
                                 {sortBy === "share_end" && <><Clock className="h-3.5 w-3.5" />{t("ui.share.sortByShareEnd")}</>}
                             </button>
@@ -194,9 +185,6 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => setSortBy("ctime")} className={`rounded-lg flex items-center gap-2 ${sortBy === "ctime" ? "bg-accent" : ""}`}>
                                 <Calendar className="h-4 w-4" />{t("ui.note.sortByCtime")}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setSortBy("path")} className={`rounded-lg flex items-center gap-2 ${sortBy === "path" ? "bg-accent" : ""}`}>
-                                <FileText className="h-4 w-4" />{t("ui.note.sortByPath")}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -218,7 +206,7 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
                     <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
                     {t("ui.common.loading")}
                 </div>
-            ) : sortedItems.length === 0 ? (
+            ) : pagedItems.length === 0 ? (
                 <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
                     {t("ui.share.noShares")}
                 </div>
@@ -226,10 +214,9 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
                 <div className="rounded-xl border border-border bg-card overflow-hidden">
                     {pagedItems.map((item, index) => {
                         const ended = isEnded(item);
-                        const title = item.note_info
-                            ? item.note_info.path.replace(/\.md$/, "")
-                            : `#${item.id}`;
-                        const canView = !ended && !!item.token && !!item.note_info;
+                        const title = item.title || item.note_info?.path.replace(/\.md$/, "") || `#${item.id}`;
+                        // canView：未结束即可（可能有 title 但无 note_info，点击时再查资源）
+                        const canView = !ended;
 
                         return (
                             <article
@@ -287,6 +274,12 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
                                                 {format(new Date(item.expires_at), "yyyy-MM-dd HH:mm")}
                                             </span>
                                         </Tooltip>
+                                        <Tooltip content={t("ui.share.viewCount") || "View Count"} side="top" delay={300}>
+                                            <span className="flex items-center gap-1 text-blue-600 dark:text-blue-400">
+                                                <History className="h-3 w-3" />
+                                                {item.view_count || 0}
+                                            </span>
+                                        </Tooltip>
                                     </div>
                                 </div>
 
@@ -323,10 +316,10 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
             )}
 
             {/* 分页控制 */}
-            {sortedItems.length > 0 && (
+            {totalRows > 0 && (
                 <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-4 pt-2 shrink-0">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span>{t("ui.common.of")} {sortedItems.length} {t("ui.share.shareCount")}</span>
+                        <span>{t("ui.common.of")} {totalRows} {t("ui.share.shareCount")}</span>
                         <Select value={pageSize.toString()} onValueChange={(val) => {
                             setPageSize(parseInt(val));
                         }}>
