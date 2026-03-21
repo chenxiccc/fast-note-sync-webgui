@@ -101,12 +101,24 @@ export function ShareManager({ vault, vaults, onVaultChange }: ShareManagerProps
 
     const onViewShare = useCallback((e: React.MouseEvent, item: ShareItem) => {
         e.stopPropagation();
-        if (!item.id || !item.token) {
+        if (!item.url && (!item.id || !item.token)) {
             toast.error("Share data is incomplete");
             return;
         }
-        // 使用与 ShareModal 一致的链接格式
-        const fullUrl = `${window.location.origin}/share/${item.id}/${item.token}`;
+        
+        // 按照用户要求的格式：域名 + share/id/token
+        // 如果有 token 字段，手动拼接；否则直接使用 item.url (如果 item.url 已经包含 /share)
+        let path = item.url;
+        if (item.id && item.token) {
+            path = `/share/${item.id}/${item.token}`;
+        }
+        
+        if (!path) {
+            toast.error("Cannot resolve share URL");
+            return;
+        }
+
+        const fullUrl = window.location.origin + path;
         window.open(fullUrl, "_blank");
     }, []);
 

@@ -1,5 +1,5 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel, DropdownMenuSeparator, } from "@/components/ui/dropdown-menu";
-import { Heart, RefreshCw, Loader2, MessageCircle, Smile, Coffee, QrCode, ExternalLink, SortDesc, ChevronLeft, ChevronRight } from "lucide-react";
+import { Heart, RefreshCw, Loader2, MessageCircle, Smile, Coffee, QrCode, ExternalLink, SortDesc, ChevronLeft, ChevronRight, AlertCircle } from "lucide-react";
 import { useSupport } from "@/components/api-handle/use-support";
 import { Tooltip } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ type SortOrder = "asc" | "desc";
 
 export function SupportList() {
     const { t } = useTranslation()
-    const { supportList, pager, isLoading, refresh } = useSupport()
+    const { supportList, pager, isLoading, error, refresh } = useSupport()
     const [page, setPage] = useState(1);
     const [pageSize] = useState(20);
     const [sortKey, setSortKey] = useState<SortKey>("amount");
@@ -33,6 +33,24 @@ export function SupportList() {
             <div className="flex flex-col items-center justify-center p-12 h-full">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-4" />
                 <span className="text-sm text-muted-foreground">{t("ui.common.loading")}</span>
+            </div>
+        )
+    }
+
+    if (error && supportList.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 h-full space-y-4">
+                <AlertCircle className="h-8 w-8 text-destructive opacity-50" />
+                <div className="text-sm text-destructive font-medium">{error}</div>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => refresh(page, pageSize, sortKey, sortOrder)}
+                    className="rounded-xl border-primary/20 hover:border-primary/50"
+                >
+                    <RefreshCw className="h-3 w-3 mr-2" />
+                    {t("ui.common.retry", { defaultValue: "重试" })}
+                </Button>
             </div>
         )
     }
@@ -107,7 +125,7 @@ export function SupportList() {
                             {sortKey === "amount" ? t("ui.support.sortDefault") : t("ui.support.sortTime")}
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="text-[11px] min-w-[120px]">
+                    <DropdownMenuContent align="end" className="text-[11px] min-w-30">
                         <DropdownMenuLabel className="text-[10px] opacity-50 px-2 py-1">{t("ui.support.sort")}</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -126,7 +144,7 @@ export function SupportList() {
                 </DropdownMenu>
             </div>
 
-            <div className="flex-1 overflow-y-auto border border-border/40 rounded-lg bg-card/10 custom-scrollbar relative min-h-[120px]">
+            <div className="flex-1 overflow-y-auto border border-border/40 rounded-lg bg-card/10 custom-scrollbar relative min-h-30">
                 {supportList.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground space-y-2 opacity-60 py-8">
                         <MessageCircle className="h-6 w-6 stroke-[1.5]" />
@@ -143,15 +161,15 @@ export function SupportList() {
                                     side="left"
                                     delay={300}
                                     content={tooltipContent}
-                                    className="max-w-[300px] whitespace-normal"
+                                    className="max-w-75 whitespace-normal"
                                 >
                                     <div className="grid grid-cols-[80px_1fr_80px] gap-2 px-3 py-2 items-center hover:bg-primary/5 transition-colors cursor-default text-[11px]">
                                         <div className="text-muted-foreground font-mono tabular-nums whitespace-nowrap overflow-hidden text-ellipsis opacity-70">
                                             {(record.time || "").split(' ')[0] || "N/A"}
                                         </div>
                                         <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                                            <Smile className="h-3 w-3 text-primary/60 flex-shrink-0" />
-                                            <span className="font-medium shrink-0 max-w-[80px] truncate">
+                                            <Smile className="h-3 w-3 text-primary/60 shrink-0" />
+                                            <span className="font-medium shrink-0 max-w-20 truncate">
                                                 {record.name || "Anonymous"}
                                             </span>
                                             {record.message && (
