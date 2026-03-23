@@ -15,6 +15,7 @@ export interface ShareItem {
   url: string             // 分享链接路径，例如 /share/1/token
   res: Record<string, string[]>
   status: number          // 1: active, 2: cancelled
+  notePath?: string       // note path, for share filter matching in note list
   token?: string          // 按路径查询单个分享时有
   view_count: number
   last_viewed_at: string
