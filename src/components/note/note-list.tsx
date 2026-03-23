@@ -25,6 +25,9 @@ type SortOrder = "desc" | "asc";
 export type ShareFilterType = 'active' | 'ended' | null;
 export type ViewModeType = 'flat' | 'folder';
 
+const isShareActive = (s: ShareItem) =>
+    s.status === 1 && new Date(s.expires_at) > new Date();
+
 interface NoteListProps {
     vault: string;
     vaults?: VaultType[];
@@ -81,9 +84,6 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [vault]);
-
-    const isShareActive = (s: ShareItem) =>
-        s.status === 1 && new Date(s.expires_at) > new Date();
 
     // 按笔记路径去重后的活跃分享路径集合
     const activeNotePathSet = useMemo(() => {
@@ -825,8 +825,9 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                         ))}
 
                         {/* 笔记列表 */}
-                        {Array.isArray(notes) && notes.map((note) => (
-                            <article
+                        {Array.isArray(notes) && notes.map((note) => {
+                            const noteIsShared = !isRecycle && !!sharePathMap[note.path] && isShareActive(sharePathMap[note.path]);
+                            return (<article
                                 key={`note-${note.pathHash}`}
                                 className="rounded-xl border border-border bg-card p-2.5 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30"
                                 onClick={() => onSelectNote(note, true)}
@@ -851,7 +852,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                         <div className="min-w-0 flex-1">
                                             <h3 className="font-semibold text-card-foreground truncate flex items-center gap-1">
                                                 <span className="truncate">{(viewMode === "folder" && !isRecycle ? note.path.split("/").pop() : note.path)?.replace(/\.md$/, "")}</span>
-                                                {!isRecycle && sharePathMap[note.path] && isShareActive(sharePathMap[note.path]) && (
+                                                {noteIsShared && (
                                                     <Share2 className="h-3 w-3 text-green-500 shrink-0" />
                                                 )}
                                             </h3>
@@ -934,7 +935,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                 </Button>
                                             </Tooltip>
                                         )}
-                                        {!isRecycle && !(sharePathMap[note.path] && isShareActive(sharePathMap[note.path])) && (
+                                        {!isRecycle && !noteIsShared && (
                                             <Tooltip content={t("ui.share.title")} side="top" delay={200}>
                                                 <Button
                                                     variant="ghost"
@@ -950,7 +951,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                 </Button>
                                             </Tooltip>
                                         )}
-                                        {!isRecycle && sharePathMap[note.path] && isShareActive(sharePathMap[note.path]) && (
+                                        {noteIsShared && (
                                             <Tooltip content={t("ui.share.viewShare")} side="top" delay={200}>
                                                 <Button
                                                     variant="ghost"
@@ -966,7 +967,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                 </Button>
                                             </Tooltip>
                                         )}
-                                        {!isRecycle && sharePathMap[note.path] && isShareActive(sharePathMap[note.path]) && (
+                                        {noteIsShared && (
                                             <Tooltip content={t("ui.share.cancelShare")} side="top" delay={200}>
                                                 <Button
                                                     variant="ghost"
@@ -1033,7 +1034,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                     </div>
                                 </div>
                             </article>
-                        ))}
+                        );})}
                     </div>
                 </div>
             )}
