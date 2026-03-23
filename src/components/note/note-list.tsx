@@ -23,6 +23,7 @@ type SearchMode = "path" | "content" | "regex";
 type SortBy = "mtime" | "ctime" | "path";
 type SortOrder = "desc" | "asc";
 type ViewMode = "flat" | "folder";
+export type ShareFilterType = 'active' | 'ended' | null;
 
 interface NoteListProps {
     vault: string;
@@ -44,9 +45,11 @@ interface NoteListProps {
     setCurrentPathHash: (hash: string) => void;
     pathHashMap: Record<string, string>;
     setPathHashMap: (map: Record<string, string>) => void;
+    shareFilter: ShareFilterType;
+    setShareFilter: (filter: ShareFilterType) => void;
 }
 
-export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap }: NoteListProps) {
+export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap, shareFilter, setShareFilter }: NoteListProps) {
     const { t } = useTranslation();
     const { handleNoteList, handleDeleteNote, handleRestoreNote, handleFolderList, handleFolderNotes, handlePermanentDeleteNote, handleClearNoteRecycle, handleRenameNote, handleNoteListByPaths } = useNoteHandle();
     const { handleShareList, handleCancelShare } = useShareHandle();
@@ -68,7 +71,6 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [selectedShareNote, setSelectedShareNote] = useState<Note | null>(null);
     const [shareItems, setShareItems] = useState<ShareItem[]>([]);
-    const [shareFilter, setShareFilter] = useState<'active' | 'ended' | null>(null);
 
     // 非回收站模式下加载分享列表
     useEffect(() => {
@@ -82,11 +84,23 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const isShareActive = (s: ShareItem) =>
         s.status === 1 && new Date(s.expires_at) > new Date();
 
-    const activeShareCount = useMemo(() =>
-        shareItems.filter(isShareActive).length, [shareItems]);
+    // 按笔记路径去重后的活跃分享路径集合
+    const activeNotePathSet = useMemo(() => {
+        const set = new Set<string>();
+        for (const s of shareItems) {
+            if (s.notePath && isShareActive(s)) set.add(s.notePath);
+        }
+        return set;
+    }, [shareItems]);
 
-    const endedShareCount = useMemo(() =>
-        shareItems.filter(s => !isShareActive(s)).length, [shareItems]);
+    // 活跃分享数 = 有活跃 share 记录的唯一笔记数
+    const activeShareCount = useMemo(() => activeNotePathSet.size, [activeNotePathSet]);
+
+    // 结束分享数 = 有 share 记录但无活跃 share 的唯一笔记数
+    const endedShareCount = useMemo(() => {
+        const allPaths = new Set(shareItems.map(s => s.notePath).filter(Boolean) as string[]);
+        return [...allPaths].filter(p => !activeNotePathSet.has(p)).length;
+    }, [shareItems, activeNotePathSet]);
 
     // notePath → ShareItem 映射（active 优先）
     const sharePathMap = useMemo(() => {
@@ -131,63 +145,93 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
 
         setLoading(true);
 
-        // 分享筛选模式：按 path 列表精确查询
-        if (shareFilter && !isRecycle) {
-            const matchPaths = shareItems
-                .filter(s => shareFilter === 'active' ? isShareActive(s) : !isShareActive(s))
-                .map(s => s.notePath)
-                .filter(Boolean) as string[];
-
-            if (matchPaths.length === 0) {
-                setNotes([]);
-                setTotalRows(0);
-                setLoading(false);
-                return;
+        // 获取当前筛选条件对应的笔记路径列表（已按路径去重）
+        const getShareMatchPaths = (): string[] => {
+            if (shareFilter === 'active') {
+                return [...activeNotePathSet];
+            } else {
+                const allPaths = new Set(shareItems.map(s => s.notePath).filter(Boolean) as string[]);
+                return [...allPaths].filter(p => !activeNotePathSet.has(p));
             }
-
-            handleNoteListByPaths(vault, matchPaths, currentPage, currentPageSize, sortBy, sortOrder, (data) => {
-                if (requestId !== noteRequestIdRef.current) return;
-                setNotes(data?.list || []);
-                setTotalRows(data?.pager?.totalRows || 0);
-                setLoading(false);
-            });
-            return;
-        }
+        };
 
         if (viewMode === "folder" && !isRecycle) {
-            // 目录模式工作流：1. 加载子目录 2. 加载当前目录下的笔记
+            // 目录模式：始终加载子目录，笔记按分享筛选决定查询方式
             handleFolderList(vault, currentPath, currentPathHash, (folderData) => {
                 if (requestId !== noteRequestIdRef.current) return;
-
                 setFolders(folderData || []);
-                handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, (noteData) => {
-                    if (requestId !== noteRequestIdRef.current) return;
-                    setNotes(noteData?.list || []);
-                    setTotalRows(noteData?.pager?.totalRows || 0);
-                    setLoading(false);
-                });
+
+                if (shareFilter) {
+                    // 取符合筛选条件且直接位于当前目录的笔记路径
+                    const allMatchPaths = getShareMatchPaths();
+                    const folderMatchPaths = allMatchPaths.filter(p => {
+                        if (!currentPath) return !p.includes("/");
+                        const prefix = currentPath + "/";
+                        if (!p.startsWith(prefix)) return false;
+                        return !p.slice(prefix.length).includes("/");
+                    });
+
+                    if (folderMatchPaths.length === 0) {
+                        setNotes([]);
+                        setTotalRows(0);
+                        setLoading(false);
+                        return;
+                    }
+
+                    handleNoteListByPaths(vault, folderMatchPaths, currentPage, currentPageSize, sortBy, sortOrder, (data) => {
+                        if (requestId !== noteRequestIdRef.current) return;
+                        setNotes(data?.list || []);
+                        setTotalRows(data?.pager?.totalRows || 0);
+                        setLoading(false);
+                    });
+                } else {
+                    handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, (noteData) => {
+                        if (requestId !== noteRequestIdRef.current) return;
+                        setNotes(noteData?.list || []);
+                        setTotalRows(noteData?.pager?.totalRows || 0);
+                        setLoading(false);
+                    });
+                }
             });
         } else {
             // 平铺模式或回收站
-            handleNoteList(vault, currentPage, currentPageSize, keyword, isRecycle, searchMode, false, sortBy, sortOrder, (data) => {
-                if (requestId !== noteRequestIdRef.current) return;
+            if (shareFilter && !isRecycle) {
+                const matchPaths = getShareMatchPaths();
 
-                let filteredList = data?.list || [];
-
-                // 前端正则过滤（因为后端使用 LIKE 作为后备）
-                if (searchMode === "regex" && keyword && filteredList.length > 0) {
-                    try {
-                        const regex = new RegExp(keyword, "i");
-                        filteredList = filteredList.filter(note => regex.test(note.path));
-                    } catch {
-                        // 正则无效时不过滤
-                    }
+                if (matchPaths.length === 0) {
+                    setNotes([]);
+                    setTotalRows(0);
+                    setLoading(false);
+                    return;
                 }
 
-                setNotes(filteredList);
-                setTotalRows(data?.pager?.totalRows || 0);
-                setLoading(false);
-            });
+                handleNoteListByPaths(vault, matchPaths, currentPage, currentPageSize, sortBy, sortOrder, (data) => {
+                    if (requestId !== noteRequestIdRef.current) return;
+                    setNotes(data?.list || []);
+                    setTotalRows(data?.pager?.totalRows || 0);
+                    setLoading(false);
+                });
+            } else {
+                handleNoteList(vault, currentPage, currentPageSize, keyword, isRecycle, searchMode, false, sortBy, sortOrder, (data) => {
+                    if (requestId !== noteRequestIdRef.current) return;
+
+                    let filteredList = data?.list || [];
+
+                    // 前端正则过滤（因为后端使用 LIKE 作为后备）
+                    if (searchMode === "regex" && keyword && filteredList.length > 0) {
+                        try {
+                            const regex = new RegExp(keyword, "i");
+                            filteredList = filteredList.filter(note => regex.test(note.path));
+                        } catch {
+                            // 正则无效时不过滤
+                        }
+                    }
+
+                    setNotes(filteredList);
+                    setTotalRows(data?.pager?.totalRows || 0);
+                    setLoading(false);
+                });
+            }
         }
     };
 
@@ -509,10 +553,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                             onClick={() => {
                                 const next = shareFilter === 'active' ? null : 'active';
                                 setShareFilter(next);
-                                if (next) {
-                                    setViewMode("flat");
-                                    setPage(1);
-                                }
+                                if (next) setPage(1);
                             }}
                         >
                             <Share2 className="h-3 w-3 mr-1" />
@@ -525,10 +566,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                             onClick={() => {
                                 const next = shareFilter === 'ended' ? null : 'ended';
                                 setShareFilter(next);
-                                if (next) {
-                                    setViewMode("flat");
-                                    setPage(1);
-                                }
+                                if (next) setPage(1);
                             }}
                         >
                             {t("ui.share.tabEnded")} ({endedShareCount})

@@ -1,5 +1,6 @@
 import { useVaultHandle } from "@/components/api-handle/vault-handle";
 import { useState, useEffect, useRef, useCallback } from "react";
+import type { ShareFilterType } from "@/components/note/note-list";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { VaultType } from "@/lib/types/vault";
@@ -52,6 +53,9 @@ export function NoteManager({
     const [currentPath, setCurrentPath] = useState("");
     const [currentPathHash, setCurrentPathHash] = useState("");
     const [pathHashMap, setPathHashMap] = useState<Record<string, string>>({});
+
+    // Lifted share filter state (survives editor unmount)
+    const [shareFilter, setShareFilter] = useState<ShareFilterType>(null);
 
     useEffect(() => {
         localStorage.setItem("notePageSize", pageSize.toString());
@@ -254,6 +258,8 @@ export function NoteManager({
                 setCurrentPathHash={setCurrentPathHash}
                 pathHashMap={pathHashMap}
                 setPathHashMap={setPathHashMap}
+                shareFilter={shareFilter}
+                setShareFilter={setShareFilter}
             />
         );
     }
