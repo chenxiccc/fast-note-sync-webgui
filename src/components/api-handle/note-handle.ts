@@ -517,8 +517,53 @@ export function useNoteHandle() {
         }
     }, [getHeaders, handleTokenExpired])
 
+    // 按路径列表精确查询笔记（用于分享筛选）
+    const handleNoteListByPaths = useCallback(async (
+        vault: string,
+        paths: string[],
+        page: number,
+        pageSize: number,
+        sortBy: string = "mtime",
+        sortOrder: string = "desc",
+        callback: (data: { list: Note[], pager: { page: number, pageSize: number, totalRows: number } } | null) => void
+    ) => {
+        try {
+            const pageStr = Math.floor(page).toString();
+            const pageSizeStr = Math.floor(pageSize).toString();
+            const pathsParam = encodeURIComponent(paths.join(","));
+            let url = `${env.API_URL}/api/notes?vault=${encodeURIComponent(vault)}&page=${pageStr}&pageSize=${pageSizeStr}&paths=${pathsParam}`;
+            if (sortBy && sortBy !== "mtime") url += `&sortBy=${sortBy}`;
+            if (sortOrder && sortOrder !== "desc") url += `&sortOrder=${sortOrder}`;
+
+            const response = await fetch(addCacheBuster(url), {
+                method: "GET",
+                headers: getHeaders(),
+            })
+            if (!response.ok) {
+                if (response.status === 508) handleTokenExpired()
+                else toast.error("Network response was not ok")
+                callback(null)
+                return
+            }
+            const res: NoteResponse<{ list: Note[], pager: { page: number, pageSize: number, totalRows: number } }> = await response.json()
+            if (res.code > 0 && res.code <= 200) {
+                const data = res.data || { list: [], pager: { page: 1, pageSize: pageSize, totalRows: 0 } };
+                if (!data.list) data.list = [];
+                callback(data)
+            } else {
+                if (res.code === 508) handleTokenExpired()
+                else toast.error(res.message)
+                callback(null)
+            }
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : String(error))
+            callback(null)
+        }
+    }, [getHeaders, handleTokenExpired])
+
     return useMemo(() => ({
         handleNoteList,
+        handleNoteListByPaths,
         handleFolderList,
         handleFolderNotes,
         handleGetNote,
@@ -534,6 +579,7 @@ export function useNoteHandle() {
         handleGetShareNote,
     }), [
         handleNoteList,
+        handleNoteListByPaths,
         handleFolderList,
         handleFolderNotes,
         handleGetNote,

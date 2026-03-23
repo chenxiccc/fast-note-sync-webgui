@@ -1,9 +1,10 @@
-import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput, Share2 } from "lucide-react";
+import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput, Share2, ExternalLink } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
 import { useNoteHandle } from "@/components/api-handle/note-handle";
-import React, { useState, useEffect, useRef } from "react";
+import { useShareHandle } from "@/components/api-handle/share-handle";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useAppStore } from "@/stores/app-store";
@@ -15,12 +16,17 @@ import { Folder } from "@/lib/types/folder";
 import { Note } from "@/lib/types/note";
 import { format } from "date-fns";
 import { ShareModal } from "@/components/share/share-modal";
+import { ShareItem } from "@/lib/types/share";
 
 
 type SearchMode = "path" | "content" | "regex";
 type SortBy = "mtime" | "ctime" | "path";
 type SortOrder = "desc" | "asc";
-type ViewMode = "flat" | "folder";
+export type ShareFilterType = 'active' | 'ended' | null;
+export type ViewModeType = 'flat' | 'folder';
+
+const isShareActive = (s: ShareItem) =>
+    s.status === 1 && new Date(s.expires_at) > new Date();
 
 interface NoteListProps {
     vault: string;
@@ -42,11 +48,16 @@ interface NoteListProps {
     setCurrentPathHash: (hash: string) => void;
     pathHashMap: Record<string, string>;
     setPathHashMap: (map: Record<string, string>) => void;
+    shareFilter: ShareFilterType;
+    setShareFilter: (filter: ShareFilterType) => void;
+    viewMode: ViewModeType;
+    setViewMode: (mode: ViewModeType) => void;
 }
 
-export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap }: NoteListProps) {
+export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap, shareFilter, setShareFilter, viewMode, setViewMode }: NoteListProps) {
     const { t } = useTranslation();
-    const { handleNoteList, handleDeleteNote, handleRestoreNote, handleFolderList, handleFolderNotes, handlePermanentDeleteNote, handleClearNoteRecycle, handleRenameNote } = useNoteHandle();
+    const { handleNoteList, handleDeleteNote, handleRestoreNote, handleFolderList, handleFolderNotes, handlePermanentDeleteNote, handleClearNoteRecycle, handleRenameNote, handleNoteListByPaths } = useNoteHandle();
+    const { handleShareList, handleCancelShare } = useShareHandle();
     const { openConfirmDialog } = useConfirmDialog();
     const [notes, setNotes] = useState<Note[]>([]);
     const [loading, setLoading] = useState(false);
@@ -58,12 +69,49 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
     const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
     const [batchRestoreProgress, setBatchRestoreProgress] = useState<{ current: number; total: number } | null>(null);
-    const [viewMode, setViewMode] = useState<ViewMode>("folder");
     const [folders, setFolders] = useState<Folder[]>([]);
     const noteRequestIdRef = useRef(0);
     const { trashType, setModule } = useAppStore();
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [selectedShareNote, setSelectedShareNote] = useState<Note | null>(null);
+    const [shareItems, setShareItems] = useState<ShareItem[]>([]);
+
+    // 非回收站模式下加载分享列表
+    useEffect(() => {
+        if (isRecycle) return;
+        handleShareList({ pageSize: 10000 }, (data) => {
+            setShareItems(data.list || []);
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [vault]);
+
+    // 按笔记路径去重后的活跃分享路径集合
+    const activeNotePathSet = useMemo(() => {
+        const set = new Set<string>();
+        for (const s of shareItems) {
+            if (s.notePath && isShareActive(s)) set.add(s.notePath);
+        }
+        return set;
+    }, [shareItems]);
+
+    // 活跃分享数 = 有活跃 share 记录的唯一笔记数
+    const activeShareCount = useMemo(() => activeNotePathSet.size, [activeNotePathSet]);
+
+    // 结束分享数 = 有 share 记录但无活跃 share 的唯一笔记数
+    const endedShareCount = useMemo(() => {
+        const allPaths = new Set(shareItems.map(s => s.notePath).filter(Boolean) as string[]);
+        return [...allPaths].filter(p => !activeNotePathSet.has(p)).length;
+    }, [shareItems, activeNotePathSet]);
+
+    // notePath → ShareItem 映射（active 优先）
+    const sharePathMap = useMemo(() => {
+        const map: Record<string, ShareItem> = {};
+        for (const s of shareItems) {
+            if (!s.notePath) continue;
+            if (!map[s.notePath] || isShareActive(s)) map[s.notePath] = s;
+        }
+        return map;
+    }, [shareItems]);
 
     // Debounce search keyword
     useEffect(() => {
@@ -98,40 +146,93 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
 
         setLoading(true);
 
+        // 获取当前筛选条件对应的笔记路径列表（已按路径去重）
+        const getShareMatchPaths = (): string[] => {
+            if (shareFilter === 'active') {
+                return [...activeNotePathSet];
+            } else {
+                const allPaths = new Set(shareItems.map(s => s.notePath).filter(Boolean) as string[]);
+                return [...allPaths].filter(p => !activeNotePathSet.has(p));
+            }
+        };
+
         if (viewMode === "folder" && !isRecycle) {
-            // 目录模式工作流：1. 加载子目录 2. 加载当前目录下的笔记
+            // 目录模式：始终加载子目录，笔记按分享筛选决定查询方式
             handleFolderList(vault, currentPath, currentPathHash, (folderData) => {
                 if (requestId !== noteRequestIdRef.current) return;
-
                 setFolders(folderData || []);
-                handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, (noteData) => {
-                    if (requestId !== noteRequestIdRef.current) return;
-                    setNotes(noteData?.list || []);
-                    setTotalRows(noteData?.pager?.totalRows || 0);
-                    setLoading(false);
-                });
+
+                if (shareFilter) {
+                    // 取符合筛选条件且直接位于当前目录的笔记路径
+                    const allMatchPaths = getShareMatchPaths();
+                    const folderMatchPaths = allMatchPaths.filter(p => {
+                        if (!currentPath) return !p.includes("/");
+                        const prefix = currentPath + "/";
+                        if (!p.startsWith(prefix)) return false;
+                        return !p.slice(prefix.length).includes("/");
+                    });
+
+                    if (folderMatchPaths.length === 0) {
+                        setNotes([]);
+                        setTotalRows(0);
+                        setLoading(false);
+                        return;
+                    }
+
+                    handleNoteListByPaths(vault, folderMatchPaths, currentPage, currentPageSize, sortBy, sortOrder, (data) => {
+                        if (requestId !== noteRequestIdRef.current) return;
+                        setNotes(data?.list || []);
+                        setTotalRows(data?.pager?.totalRows || 0);
+                        setLoading(false);
+                    });
+                } else {
+                    handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, (noteData) => {
+                        if (requestId !== noteRequestIdRef.current) return;
+                        setNotes(noteData?.list || []);
+                        setTotalRows(noteData?.pager?.totalRows || 0);
+                        setLoading(false);
+                    });
+                }
             });
         } else {
             // 平铺模式或回收站
-            handleNoteList(vault, currentPage, currentPageSize, keyword, isRecycle, searchMode, false, sortBy, sortOrder, (data) => {
-                if (requestId !== noteRequestIdRef.current) return;
+            if (shareFilter && !isRecycle) {
+                const matchPaths = getShareMatchPaths();
 
-                let filteredList = data?.list || [];
-
-                // 前端正则过滤（因为后端使用 LIKE 作为后备）
-                if (searchMode === "regex" && keyword && filteredList.length > 0) {
-                    try {
-                        const regex = new RegExp(keyword, "i");
-                        filteredList = filteredList.filter(note => regex.test(note.path));
-                    } catch {
-                        // 正则无效时不过滤
-                    }
+                if (matchPaths.length === 0) {
+                    setNotes([]);
+                    setTotalRows(0);
+                    setLoading(false);
+                    return;
                 }
 
-                setNotes(filteredList);
-                setTotalRows(data?.pager?.totalRows || 0);
-                setLoading(false);
-            });
+                handleNoteListByPaths(vault, matchPaths, currentPage, currentPageSize, sortBy, sortOrder, (data) => {
+                    if (requestId !== noteRequestIdRef.current) return;
+                    setNotes(data?.list || []);
+                    setTotalRows(data?.pager?.totalRows || 0);
+                    setLoading(false);
+                });
+            } else {
+                handleNoteList(vault, currentPage, currentPageSize, keyword, isRecycle, searchMode, false, sortBy, sortOrder, (data) => {
+                    if (requestId !== noteRequestIdRef.current) return;
+
+                    let filteredList = data?.list || [];
+
+                    // 前端正则过滤（因为后端使用 LIKE 作为后备）
+                    if (searchMode === "regex" && keyword && filteredList.length > 0) {
+                        try {
+                            const regex = new RegExp(keyword, "i");
+                            filteredList = filteredList.filter(note => regex.test(note.path));
+                        } catch {
+                            // 正则无效时不过滤
+                        }
+                    }
+
+                    setNotes(filteredList);
+                    setTotalRows(data?.pager?.totalRows || 0);
+                    setLoading(false);
+                });
+            }
         }
     };
 
@@ -139,7 +240,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         fetchNotes(page, pageSize, debouncedKeyword);
         setSelectedPaths(new Set()); // 清空选中
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath]);
+    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter, shareItems]);
 
     // 当搜索内容、目录路径或浏览模式变化时，重置页码到第1页
     useEffect(() => {
@@ -444,6 +545,35 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                         </span>
                     </div>
 
+                    {/* 分享筛选按钮 */}
+                    <div className="flex items-center gap-1.5">
+                        <Button
+                            variant={shareFilter === 'active' ? 'default' : 'outline'}
+                            size="sm"
+                            className="rounded-xl text-xs h-8"
+                            onClick={() => {
+                                const next = shareFilter === 'active' ? null : 'active';
+                                setShareFilter(next);
+                                if (next) setPage(1);
+                            }}
+                        >
+                            <Share2 className="h-3 w-3 mr-1" />
+                            {t("ui.share.tabActive")} ({activeShareCount})
+                        </Button>
+                        <Button
+                            variant={shareFilter === 'ended' ? 'default' : 'outline'}
+                            size="sm"
+                            className="rounded-xl text-xs h-8"
+                            onClick={() => {
+                                const next = shareFilter === 'ended' ? null : 'ended';
+                                setShareFilter(next);
+                                if (next) setPage(1);
+                            }}
+                        >
+                            {t("ui.share.tabEnded")} ({endedShareCount})
+                        </Button>
+                    </div>
+
                     {/* 排序选择 */}
                     <div className="flex items-center h-8 rounded-xl border border-border overflow-hidden bg-background shadow-sm ml-auto">
                         <button
@@ -695,8 +825,9 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                         ))}
 
                         {/* 笔记列表 */}
-                        {Array.isArray(notes) && notes.map((note) => (
-                            <article
+                        {Array.isArray(notes) && notes.map((note) => {
+                            const noteIsShared = !isRecycle && !!sharePathMap[note.path] && isShareActive(sharePathMap[note.path]);
+                            return (<article
                                 key={`note-${note.pathHash}`}
                                 className="rounded-xl border border-border bg-card p-2.5 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30"
                                 onClick={() => onSelectNote(note, true)}
@@ -719,8 +850,11 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                             <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
                                         </span>
                                         <div className="min-w-0 flex-1">
-                                            <h3 className="font-semibold text-card-foreground truncate">
-                                                {(viewMode === "folder" && !isRecycle ? note.path.split("/").pop() : note.path)?.replace(/\.md$/, "")}
+                                            <h3 className="font-semibold text-card-foreground truncate flex items-center gap-1">
+                                                <span className="truncate">{(viewMode === "folder" && !isRecycle ? note.path.split("/").pop() : note.path)?.replace(/\.md$/, "")}</span>
+                                                {noteIsShared && (
+                                                    <Share2 className="h-3 w-3 text-green-500 shrink-0" />
+                                                )}
                                             </h3>
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1.5 text-xs text-muted-foreground">
                                                 <Tooltip content={t("ui.common.createdAt")} side="top" delay={300}>
@@ -801,7 +935,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                 </Button>
                                             </Tooltip>
                                         )}
-                                        {!isRecycle && (
+                                        {!isRecycle && !noteIsShared && (
                                             <Tooltip content={t("ui.share.title")} side="top" delay={200}>
                                                 <Button
                                                     variant="ghost"
@@ -814,6 +948,49 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                     }}
                                                 >
                                                     <Share2 className="h-4 w-4" />
+                                                </Button>
+                                            </Tooltip>
+                                        )}
+                                        {noteIsShared && (
+                                            <Tooltip content={t("ui.share.viewShare")} side="top" delay={200}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl text-muted-foreground hover:text-green-600"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const s = sharePathMap[note.path];
+                                                        window.open(window.location.origin + s.url, '_blank');
+                                                    }}
+                                                >
+                                                    <ExternalLink className="h-4 w-4" />
+                                                </Button>
+                                            </Tooltip>
+                                        )}
+                                        {noteIsShared && (
+                                            <Tooltip content={t("ui.share.cancelShare")} side="top" delay={200}>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl text-muted-foreground hover:text-destructive"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const s = sharePathMap[note.path];
+                                                        openConfirmDialog(t("ui.share.cancelConfirm"), "confirm", () => {
+                                                            handleCancelShare({ id: s.id, vault }, () => {
+                                                                handleShareList({ pageSize: 10000 }, (data) => {
+                                                                    setShareItems(data.list || []);
+                                                                });
+                                                            });
+                                                        });
+                                                    }}
+                                                >
+                                                    <span className="relative inline-flex">
+                                                        <Share2 className="h-4 w-4" />
+                                                        <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                            <span className="block w-[130%] h-[1.5px] bg-current rotate-[-45deg] translate-x-[-5%]" />
+                                                        </span>
+                                                    </span>
                                                 </Button>
                                             </Tooltip>
                                         )}
@@ -856,7 +1033,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                     </div>
                                 </div>
                             </article>
-                        ))}
+                        );})}
                     </div>
                 </div>
             )}
