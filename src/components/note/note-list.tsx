@@ -1,4 +1,4 @@
-import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput, Share2, ExternalLink, Link2Off } from "lucide-react";
+import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput, Share2, ExternalLink } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -934,7 +934,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                 </Button>
                                             </Tooltip>
                                         )}
-                                        {!isRecycle && (
+                                        {!isRecycle && !(sharePathMap[note.path] && isShareActive(sharePathMap[note.path])) && (
                                             <Tooltip content={t("ui.share.title")} side="top" delay={200}>
                                                 <Button
                                                     variant="ghost"
@@ -985,7 +985,12 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                         });
                                                     }}
                                                 >
-                                                    <Link2Off className="h-4 w-4" />
+                                                    <span className="relative inline-flex">
+                                                        <Share2 className="h-4 w-4" />
+                                                        <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                            <span className="block w-[130%] h-[1.5px] bg-current rotate-[-45deg] translate-x-[-5%]" />
+                                                        </span>
+                                                    </span>
                                                 </Button>
                                             </Tooltip>
                                         )}
