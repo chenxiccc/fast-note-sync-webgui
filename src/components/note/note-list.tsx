@@ -22,8 +22,8 @@ import { ShareItem } from "@/lib/types/share";
 type SearchMode = "path" | "content" | "regex";
 type SortBy = "mtime" | "ctime" | "path";
 type SortOrder = "desc" | "asc";
-type ViewMode = "flat" | "folder";
 export type ShareFilterType = 'active' | 'ended' | null;
+export type ViewModeType = 'flat' | 'folder';
 
 interface NoteListProps {
     vault: string;
@@ -47,9 +47,11 @@ interface NoteListProps {
     setPathHashMap: (map: Record<string, string>) => void;
     shareFilter: ShareFilterType;
     setShareFilter: (filter: ShareFilterType) => void;
+    viewMode: ViewModeType;
+    setViewMode: (mode: ViewModeType) => void;
 }
 
-export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap, shareFilter, setShareFilter }: NoteListProps) {
+export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap, shareFilter, setShareFilter, viewMode, setViewMode }: NoteListProps) {
     const { t } = useTranslation();
     const { handleNoteList, handleDeleteNote, handleRestoreNote, handleFolderList, handleFolderNotes, handlePermanentDeleteNote, handleClearNoteRecycle, handleRenameNote, handleNoteListByPaths } = useNoteHandle();
     const { handleShareList, handleCancelShare } = useShareHandle();
@@ -64,7 +66,6 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
     const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
     const [batchRestoreProgress, setBatchRestoreProgress] = useState<{ current: number; total: number } | null>(null);
-    const [viewMode, setViewMode] = useState<ViewMode>("folder");
     const [folders, setFolders] = useState<Folder[]>([]);
     const noteRequestIdRef = useRef(0);
     const { trashType, setModule } = useAppStore();
@@ -239,7 +240,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         fetchNotes(page, pageSize, debouncedKeyword);
         setSelectedPaths(new Set()); // 清空选中
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter]);
+    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter, shareItems]);
 
     // 当搜索内容、目录路径或浏览模式变化时，重置页码到第1页
     useEffect(() => {
