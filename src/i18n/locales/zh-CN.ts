@@ -18,6 +18,7 @@ export default {
     "ui.common.batchPermanentDelete": "批量永久删除",
     "ui.common.batchPermanentDeleteConfirm": "确定要永久删除选中的 {{count}} 个项目吗？此操作不可恢复！",
     "ui.common.refresh": "刷新",
+    "ui.common.retry": "重试",
     "ui.common.refreshSuccess": "刷新成功",
     "ui.common.close": "关闭",
     "ui.common.cancel": "取消",
@@ -653,4 +654,7 @@ export default {
     "ui.share.copySuccess": "链接已复制到剪贴板",
     "ui.share.cancelSuccess": "已取消分享",
     "ui.share.buttonCreating": "正在开启...",
+    "ui.share.passwordRequired": "需要密码",
+    "ui.share.passwordHint": "该分享受密码保护，请输入密码以查看内容。",
+    "ui.share.passwordPlaceholder": "请输入密码...",
 };

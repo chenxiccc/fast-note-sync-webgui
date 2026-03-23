@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { getBrowserLang } from "@/i18n/utils";
 import env from "@/env.ts";
 
 
@@ -36,6 +37,7 @@ export function ChangePassword({ close }: { close: () => void }) {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,
+          "Lang": getBrowserLang(),
         },
         body: formData,
       })

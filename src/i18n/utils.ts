@@ -10,14 +10,30 @@ export const changeLang = async (lang: string, storageKey: string = "lang") => {
 }
 
 // 获取语言
-export function getBrowserLang(storageKey: string = "lang"): string {
-  let lang
-  if (localStorage.getItem(storageKey)) {
-    lang = localStorage.getItem(storageKey)
-  } else {
-    lang = navigator.language
+export function getBrowserLang(storageKey?: string): string {
+  // 如果显式指定了 key，则按指定 key 获取
+  if (storageKey) {
+    return localStorage.getItem(storageKey) || navigator.language || "en";
   }
-  let to = lang?.toString()
 
-  return to ? to : "en"
+  // 自动检测页面环境：分享页特征为 URL 中包含 share
+  const isSharePage = typeof window !== "undefined" && 
+    (window.location.pathname.toLowerCase().includes("share") || 
+     window.location.search.toLowerCase().includes("share"));
+  
+  const key = isSharePage ? "share-lang" : "lang";
+  let lang = localStorage.getItem(key);
+
+  // 如果在分享页没找到 share-lang，尝试降级到通用 lang
+  if (!lang && isSharePage) {
+    lang = localStorage.getItem("lang");
+  }
+
+  // 最后后备到浏览器语言
+  if (!lang) {
+    lang = navigator.language;
+  }
+
+  const to = lang?.toString();
+  return to ? (to.includes(",") ? to.split(",")[0] : to) : "en";
 }

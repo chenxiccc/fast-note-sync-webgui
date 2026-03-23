@@ -18,6 +18,7 @@ export default {
     "ui.common.batchPermanentDelete": "Batch Permanent Delete",
     "ui.common.batchPermanentDeleteConfirm": "Are you sure you want to permanently delete the selected {{count}} items? This action is irreversible!",
     "ui.common.refresh": "Refresh",
+    "ui.common.retry": "Retry",
     "ui.common.refreshSuccess": "Refresh successful",
     "ui.common.close": "Close",
     "ui.common.cancel": "Cancel",
@@ -642,4 +643,7 @@ export default {
     "ui.share.viewShare": "View Share Page",
     "ui.share.cancelShare": "Cancel Share",
     "ui.share.cancelConfirm": "Are you sure you want to cancel this share? The link will become invalid immediately.",
+    "ui.share.passwordRequired": "Password Required",
+    "ui.share.passwordHint": "This share is password protected. Please enter the password to view the content.",
+    "ui.share.passwordPlaceholder": "Enter password...",
 };

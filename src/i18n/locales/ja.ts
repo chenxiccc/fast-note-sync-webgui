@@ -18,6 +18,7 @@ export default {
     "ui.common.batchPermanentDelete": "一括永久削除",
     "ui.common.batchPermanentDeleteConfirm": "選択した {{count}} 個の項目を永久に削除してもよろしいですか？この操作は取り消せません！",
     "ui.common.refresh": "更新",
+    "ui.common.retry": "再試行",
     "ui.common.refreshSuccess": "更新に成功しました",
     "ui.common.close": "閉じる",
     "ui.common.cancel": "キャンセル",
@@ -635,4 +636,7 @@ export default {
     "ui.share.poweredByPrefix": "提供: ",
     "ui.share.poweredBySuffix": "",
     "ui.share.version": "バージョン",
+    "ui.share.passwordRequired": "パスワードが必要",
+    "ui.share.passwordHint": "この共有はパスワードで保護されています。内容を表示するにはパスワードを入力してください。",
+    "ui.share.passwordPlaceholder": "パスワードを入力してください...",
 };

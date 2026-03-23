@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import { useNoteHandle } from "@/components/api-handle/note-handle";
 import { NoteDetail } from "@/lib/types/note";
 import { useTranslation } from "react-i18next";
-import { Loader2, Share2, Calendar, FileText, Sun, Moon, RefreshCw, MoveHorizontal, SunMoon, MoreVertical, Languages, Palette } from "lucide-react";
+import { Loader2, Share2, Calendar, FileText, Sun, Moon, RefreshCw, MoveHorizontal, SunMoon, MoreVertical, Languages, Palette, Lock } from "lucide-react";
 import { format } from "date-fns";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { ColorSchemeSwitcher } from "@/components/layout/ColorSchemeSwitcher";
 import { useTheme } from "@/components/context/theme-context";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui/tooltip";
 import { AnimatedBackground } from "@/components/user/animated-background";
@@ -32,8 +33,14 @@ export function ShareApp() {
     };
     const { colorScheme } = useShareSettingsStore();
     const [note, setNote] = useState<NoteDetail | null>(null);
+    const [errorCode, setErrorCode] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [password, setPassword] = useState("");
+    const [inputPassword, setInputPassword] = useState("");
+    const [isPasswordRequired, setIsPasswordRequired] = useState(false);
+    const [shareId, setShareId] = useState<string | null>(null);
+    const [shareToken, setShareToken] = useState<string | null>(null);
     const [isFullWidth, setIsFullWidth] = useState(() => {
         return localStorage.getItem("share-is-full-width") === "true";
     });
@@ -108,13 +115,54 @@ export function ShareApp() {
             return;
         }
 
+        setShareId(id);
+        setShareToken(token);
+
+        // 首次尝试：从全局统一存储读取，但仅回填属于当前 ID 的密码
+        if (!password) {
+            const savedPwd = localStorage.getItem("share-common-password");
+            const savedId = localStorage.getItem("share-common-password-id");
+            if (savedPwd && savedId === id) {
+                setPassword(savedPwd);
+                return; // 状态变更将触发下一次 fetchNote 调用
+            }
+        }
+
         setLoading(true);
-        handleGetShareNote(id, token, (data: NoteDetail) => {
+        handleGetShareNote(id, token, password, (data: NoteDetail) => {
             setNote(data);
-        }, () => {
+            setIsPasswordRequired(false);
+            setError(null);
+            setLoading(false);
+            // 验证通过，保存当前有效的密码及其 ID
+            if (password) {
+                localStorage.setItem("share-common-password", password);
+                localStorage.setItem("share-common-password-id", id);
+            }
+        }, (code, message) => {
+            setErrorCode(code);
+            if (code === 483) {
+                // 需要密码：直接弹出输入界面
+                setIsPasswordRequired(true);
+                setError(null);
+            } else if (code === 484) {
+                // 密码错误：显示专门的错误界面，由重试按钮再次触发输入框
+                setIsPasswordRequired(false);
+                setError(message);
+                // 密码失效或错误，针对全局键进行清理
+                localStorage.removeItem("share-common-password");
+                localStorage.removeItem("share-common-password-id");
+            } else {
+                setError(message);
+            }
             setLoading(false);
         });
-    }, [handleGetShareNote, t]);
+    }, [handleGetShareNote, t, password]);
+
+    const handlePasswordSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setPassword(inputPassword);
+    };
 
     useEffect(() => {
         fetchNote();
@@ -183,7 +231,7 @@ export function ShareApp() {
         );
     }
 
-    if (error || !note) {
+    if (error || (!isPasswordRequired && !note)) {
         return (
             <div className="flex h-screen w-screen items-center justify-center bg-background p-6">
                 <div className="max-w-md text-center">
@@ -192,10 +240,67 @@ export function ShareApp() {
                     </div>
                     <h1 className="mb-2 text-2xl font-bold">{t("ui.share.errorTitle")}</h1>
                     <p className="text-muted-foreground">{error || t("ui.share.noteNotFound")}</p>
+                    <Button
+                        className="mt-6 rounded-xl"
+                        variant="outline"
+                        onClick={() => {
+                            if (errorCode === 483 || errorCode === 484) {
+                                setIsPasswordRequired(true);
+                                setError(null);
+                                setErrorCode(null);
+                            } else {
+                                window.location.reload();
+                            }
+                        }}
+                    >
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        {t("ui.common.retry")}
+                    </Button>
                 </div>
             </div>
         );
     }
+
+    if (isPasswordRequired && !note) {
+        return (
+            <div className="flex h-screen w-screen items-center justify-center bg-background p-6">
+                {colorScheme === 'default' && <AnimatedBackground />}
+                <div className="z-10 w-full max-w-sm">
+                    <div className="relative rounded-3xl border bg-card p-8 shadow-xl backdrop-blur-sm">
+                        <div className="absolute top-4 right-4">
+                            <LanguageSwitcher storageKey="share-lang" />
+                        </div>
+                        <div className="mb-6 text-center">
+                            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                                <Lock className="h-8 w-8" />
+                            </div>
+                            <h1 className="text-2xl font-bold">{t("ui.share.passwordRequired", "Password Required")}</h1>
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                {t("ui.share.passwordHint", "This note is password protected. Please enter the password to view it.")}
+                            </p>
+                        </div>
+                        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                            <div className="space-y-2">
+                                <Input
+                                    type="password"
+                                    placeholder={t("ui.share.passwordPlaceholder", "Enter password...")}
+                                    value={inputPassword}
+                                    onChange={(e) => setInputPassword(e.target.value)}
+                                    className="h-12 rounded-xl text-center text-lg tracking-widest focus-visible:ring-primary"
+                                    autoFocus
+                                />
+                            </div>
+                            <Button type="submit" className="h-12 w-full rounded-xl text-lg font-semibold shadow-lg shadow-primary/20">
+                                {t("ui.common.confirm")}
+                            </Button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!note) return null;
 
     return (
         <div className="min-h-screen bg-background relative overflow-x-hidden">
@@ -349,6 +454,9 @@ export function ShareApp() {
                             fileLinks={note.fileLinks}
                             fullWidth={isFullWidth}
                             autoHeight={true}
+                            shareId={shareId || ""}
+                            shareToken={shareToken || ""}
+                            password={password}
                         />
                     </div>
                 </main>

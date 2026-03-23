@@ -18,6 +18,7 @@ export default {
     "ui.common.batchPermanentDelete": "批量永久刪除",
     "ui.common.batchPermanentDeleteConfirm": "確定要永久刪除選中的 {{count}} 項嗎？此操作不可撤銷！",
     "ui.common.refresh": "更新",
+    "ui.common.retry": "重試",
     "ui.common.refreshSuccess": "更新成功",
     "ui.common.close": "關閉",
     "ui.common.cancel": "取消",
@@ -635,4 +636,7 @@ export default {
     "ui.share.poweredByPrefix": "強大動力來自 ",
     "ui.share.poweredBySuffix": "",
     "ui.share.version": "版本",
+    "ui.share.passwordRequired": "需要密碼",
+    "ui.share.passwordHint": "該分享受密碼保護，請輸入密碼以查看內容。",
+    "ui.share.passwordPlaceholder": "請輸入密碼...",
 };

@@ -350,9 +350,19 @@ export function useNoteHandle() {
         }
     }, [getHeaders, handleTokenExpired])
 
-    const handleGetShareNote = useCallback(async (id: string, token: string, callback: (note: NoteDetail) => void, onSettled?: () => void) => {
+    const handleGetShareNote = useCallback(async (
+        id: string,
+        token: string,
+        password?: string,
+        callback?: (note: NoteDetail) => void,
+        onError?: (code: number, message: string) => void,
+        onSettled?: () => void
+    ) => {
         try {
-            const url = `${env.API_URL}/api/share/note?id=${id}`;
+            let url = `${env.API_URL}/api/share/note?id=${id}`;
+            if (password) {
+                url += `&password=${encodeURIComponent(password)}`;
+            }
             const response = await fetch(addCacheBuster(url), {
                 method: "GET",
                 headers: {
@@ -362,16 +372,32 @@ export function useNoteHandle() {
                 },
             })
             if (!response.ok) {
+                // If it's a 4xx error from Go server, it might still have a JSON body with a code
+                try {
+                    const res = await response.json();
+                    if (res.code >= 400) {
+                        onError?.(res.code, res.message);
+                        return;
+                    }
+                } catch {
+                    // Fallback to generic error
+                }
                 throw new Error("Network response was not ok")
             }
             const res: NoteResponse<NoteDetail> = await response.json()
             if (res.code > 0 && res.code <= 200 && res.data) {
-                callback(res.data)
+                callback?.(res.data)
+            } else if (res.code === 483) {
+                if (onError) onError(483, res.message);
+                else toast.error(res.message);
             } else {
-                toast.error(res.message)
+                if (onError) onError(res.code, res.message);
+                else toast.error(res.message);
             }
         } catch (error: unknown) {
-            toast.error(error instanceof Error ? error.message : String(error))
+            const msg = error instanceof Error ? error.message : String(error);
+            if (onError) onError(-1, msg);
+            else toast.error(msg);
         } finally {
             onSettled?.()
         }

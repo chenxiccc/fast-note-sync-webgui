@@ -20,6 +20,7 @@ import {
 import { toast } from "@/components/common/Toast";
 import { useTheme } from "@/components/context/theme-context";
 import { cn } from "@/lib/utils";
+import { getBrowserLang } from "@/i18n/utils";
 import env from "@/env.ts";
 
 const CALLOUT_ICONS: Record<string, LucideIcon> = {
@@ -59,6 +60,9 @@ interface MarkdownEditorProps {
     onWikiLinkClick?: (target: string) => void;
     fullWidth?: boolean;
     autoHeight?: boolean;
+    shareId?: string;
+    shareToken?: string;
+    password?: string;
 }
 
 type AttachmentType = "image" | "video" | "audio" | "file";
@@ -185,8 +189,14 @@ mark {
 // ─── 工具函数 ───────────────────────────────────────────────
 
 function buildFileApiUrl(vault: string, path: string, token: string): string {
-    const params = new URLSearchParams({ vault, path, token });
+    const params = new URLSearchParams({ vault, path, token, lang: getBrowserLang() });
     return `${env.API_URL}/api/file?${params.toString()}`;
+}
+
+function buildShareFileApiUrl(id: string, token: string, path: string, password?: string): string {
+    const params = new URLSearchParams({ id, token, path, lang: getBrowserLang() });
+    if (password) params.append("password", password);
+    return `${env.API_URL}/api/share/file?${params.toString()}`;
 }
 
 function resolveAttachmentType(path: string): AttachmentType {
@@ -229,7 +239,10 @@ function transformObsidianSyntax(
     content: string,
     vault: string,
     fileLinks: Record<string, string>,
-    token: string
+    token: string,
+    shareId?: string,
+    shareToken?: string,
+    password?: string
 ): string {
     if (!content) return content;
 
@@ -237,20 +250,20 @@ function transformObsidianSyntax(
 
     // 0. 保护代码块和行内代码：提取后用占位符替换，转换完再还原
     const codeBlocks: string[] = [];
-    const CODE_PLACEHOLDER = "\x00CODE_BLOCK_";
+    const CODE_PLACEHOLDER = "\0CODE_BLOCK_";
 
     // 先提取围栏代码块（```...``` 或 ~~~...~~~），按行匹配开闭标记
     result = result.replace(/^(`{3,}|~{3,})[^\n]*\n[\s\S]*?\n\1\s*$/gm, (match) => {
         const index = codeBlocks.length;
         codeBlocks.push(match);
-        return `${CODE_PLACEHOLDER}${index}\x00`;
+        return `${CODE_PLACEHOLDER}${index}\0`;
     });
 
     // 再提取行内代码（`...` 或 ``...``），避免匹配已提取的占位符
-    result = result.replace(/(`+)(?!\x00)(.+?)\1/g, (match) => {
+    result = result.replace(/(`+)(?!\0)(.+?)\1/g, (match) => {
         const index = codeBlocks.length;
         codeBlocks.push(match);
-        return `${CODE_PLACEHOLDER}${index}\x00`;
+        return `${CODE_PLACEHOLDER}${index}\0`;
     });
 
     // 1. 移除 %%comment%% 注释（含跨行）
@@ -263,7 +276,9 @@ function transformObsidianSyntax(
         if (!rawPath) return match;
 
         const resolvedPath = fileLinks[rawPath] || rawPath;
-        const apiUrl = buildFileApiUrl(vault, resolvedPath, token);
+        const apiUrl = shareId && shareToken
+            ? buildShareFileApiUrl(shareId, shareToken, resolvedPath, password)
+            : buildFileApiUrl(vault, resolvedPath, token);
         const displayName = escapeMarkdownText((metaParts[0] || rawPath).trim());
         const attachmentType = resolveAttachmentType(resolvedPath.toLowerCase());
 
@@ -299,7 +314,7 @@ function transformObsidianSyntax(
     });
 
     // 6. 还原代码块占位符
-    result = result.replace(new RegExp(`${CODE_PLACEHOLDER.replace(/\x00/g, "\\x00")}(\\d+)\\x00`, "g"), (_, index) => {
+    result = result.replace(new RegExp(`${CODE_PLACEHOLDER.replace(/\0/g, "\\0")}(\\d+)\\0`, "g"), (_, index) => {
         return codeBlocks[parseInt(index, 10)];
     });
 
@@ -572,6 +587,9 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
             onWikiLinkClick,
             fullWidth = false,
             autoHeight = false,
+            shareId,
+            shareToken,
+            password,
         },
         ref
     ) => {
@@ -656,21 +674,21 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 
         // 预览转换：首次同步计算（避免白屏），后续变化 debounce 150ms
         const [previewMarkdown, setPreviewMarkdown] = useState(() =>
-            mode === "preview" ? transformObsidianSyntax(value, vault, fileLinks, tokenRef.current) : ""
+            mode === "preview" ? transformObsidianSyntax(value, vault, fileLinks, tokenRef.current, shareId, shareToken, password) : ""
         );
 
         useEffect(() => {
             if (mode !== "preview") return;
             const timer = setTimeout(() => {
-                setPreviewMarkdown(transformObsidianSyntax(value, vault, fileLinks, tokenRef.current));
+                setPreviewMarkdown(transformObsidianSyntax(value, vault, fileLinks, tokenRef.current, shareId, shareToken, password));
             }, 150);
             return () => clearTimeout(timer);
-        }, [mode, value, vault, fileLinks]);
+        }, [mode, value, vault, fileLinks, shareId, shareToken, password]);
 
         const handleExportHTML = useCallback(() => {
             try {
                 const markdownValue = getCurrentValue();
-                const transformed = transformObsidianSyntax(markdownValue, vault, fileLinks, tokenRef.current);
+                const transformed = transformObsidianSyntax(markdownValue, vault, fileLinks, tokenRef.current, shareId, shareToken, password);
                 const rendered = renderToStaticMarkup(
                     <main>
                         <MarkdownRenderer content={transformed} />
@@ -699,7 +717,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
             } catch {
                 toast.error(t("ui.note.exportHtmlFailed", { defaultValue: "Failed to export HTML" }));
             }
-        }, [fileLinks, getCurrentValue, t, vault]);
+        }, [fileLinks, getCurrentValue, t, vault, shareId, shareToken, password]);
 
         const handleExportPDF = useCallback(() => {
             toast.info(t("ui.note.exportPdfPlanned"));

@@ -18,6 +18,7 @@ export default {
     "ui.common.batchPermanentDelete": "일괄 영구 삭제",
     "ui.common.batchPermanentDeleteConfirm": "선택한 {{count}}개 항목을 영구적으로 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다!",
     "ui.common.refresh": "새로고침",
+    "ui.common.retry": "재시도",
     "ui.common.refreshSuccess": "새로고침 성공",
     "ui.common.close": "닫기",
     "ui.common.cancel": "취소",
@@ -635,4 +636,7 @@ export default {
     "ui.share.poweredByPrefix": "지원: ",
     "ui.share.poweredBySuffix": "",
     "ui.share.version": "버전",
+    "ui.share.passwordRequired": "비밀번호 필요",
+    "ui.share.passwordHint": "이 공유는 비밀번호로 보호되어 있습니다. 내용을 보려면 비밀번호를 입력하세요.",
+    "ui.share.passwordPlaceholder": "비밀번호를 입력하세요...",
 };
