@@ -63,6 +63,7 @@ export default {
     "ui.common.wideMode": "ワイドモード",
     "ui.common.narrowMode": "通常幅",
     "ui.common.fold": "閉じる",
+    "ui.common.noChange": "内容に変更はありません",
 
 
     // --- ui.auth ---

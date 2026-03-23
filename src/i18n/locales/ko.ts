@@ -63,6 +63,7 @@ export default {
     "ui.common.wideMode": "와이드 모드",
     "ui.common.narrowMode": "일반 너비",
     "ui.common.fold": "접기",
+    "ui.common.noChange": "내용에 변화가 없습니다",
 
 
     // --- ui.auth ---

@@ -63,6 +63,7 @@ export default {
     "ui.common.wideMode": "宽屏模式",
     "ui.common.narrowMode": "正常宽度",
     "ui.common.fold": "收起",
+    "ui.common.noChange": "内容未发生变化",
 
 
     // --- ui.auth ---

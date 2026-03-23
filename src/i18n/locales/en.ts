@@ -63,6 +63,7 @@ export default {
     "ui.common.wideMode": "Wide Mode",
     "ui.common.narrowMode": "Normal Width",
     "ui.common.fold": "Fold",
+    "ui.common.noChange": "No changes detected",
 
 
     // --- ui.auth ---
