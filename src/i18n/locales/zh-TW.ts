@@ -57,10 +57,12 @@ export default {
     "ui.common.selectAll": "全選",
     "ui.common.items": "項",
     "ui.common.count": "個",
+    "ui.common.saveSuccess": "儲存成功",
     "ui.common.selectVault": "選擇庫",
     "ui.common.sourceCode": "源代碼",
     "ui.common.wideMode": "寬屏模式",
     "ui.common.narrowMode": "普通寬度",
+    "ui.common.fold": "收起",
 
 
     // --- ui.auth ---
@@ -97,6 +99,10 @@ export default {
     "ui.auth.userUid": "用戶 UID: {{uid}}",
     "ui.auth.loginRequestFailed": "登錄請求失敗，請檢查網絡",
     "ui.auth.registerRequestFailed": "註冊失敗，請重試",
+
+
+    // --- ui.user ---
+    "ui.user.password": "訪問密碼",
 
     // --- ui.nav ---
     "ui.nav.navigation": "導航",
@@ -639,4 +645,22 @@ export default {
     "ui.share.passwordRequired": "需要密碼",
     "ui.share.passwordHint": "該分享受密碼保護，請輸入密碼以查看內容。",
     "ui.share.passwordPlaceholder": "請輸入密碼...",
+    "ui.share.tabActive": "分享中",
+    "ui.share.tabEnded": "分享結束",
+    "ui.share.noShares": "暫無分享記錄",
+    "ui.share.viewShare": "查看分享頁",
+    "ui.share.cancelShare": "取消分享",
+    "ui.share.cancelConfirm": "確定要取消該筆記的分享嗎？取消後分享鏈接將立即失效。",
+    "ui.share.title": "分享筆記",
+    "ui.share.checking": "正在檢查分享狀態...",
+    "ui.share.create": "開啟分享",
+    "ui.share.success": "分享成功",
+    "ui.share.shortLinkCreate": "生成短鏈接",
+    "ui.share.link": "分享鏈接",
+    "ui.share.shortLink": "短鏈接",
+    "ui.share.copy": "複製鏈接",
+    "ui.share.copySuccess": "鏈接已複製到剪貼板",
+    "ui.share.shortLinkCopy": "複製短鏈接",
+    "ui.share.cancelSuccess": "已取消分享",
+    "ui.share.preview": "內容預覽",
 };

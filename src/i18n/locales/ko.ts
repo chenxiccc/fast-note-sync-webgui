@@ -57,10 +57,12 @@ export default {
     "ui.common.selectAll": "전체 선택",
     "ui.common.items": "건",
     "ui.common.count": "개",
+    "ui.common.saveSuccess": "저장 성공",
     "ui.common.selectVault": "보관소 선택",
     "ui.common.sourceCode": "소스 코드",
     "ui.common.wideMode": "와이드 모드",
     "ui.common.narrowMode": "일반 너비",
+    "ui.common.fold": "접기",
 
 
     // --- ui.auth ---
@@ -97,6 +99,10 @@ export default {
     "ui.auth.userUid": "사용자 UID: {{uid}}",
     "ui.auth.loginRequestFailed": "로그인 요청 실패, 네트워크를 확인하세요",
     "ui.auth.registerRequestFailed": "가입 실패, 다시 시도하세요",
+
+
+    // --- ui.user ---
+    "ui.user.password": "비밀번호",
 
     // --- ui.nav ---
     "ui.nav.navigation": "내비게이션",
@@ -639,4 +645,22 @@ export default {
     "ui.share.passwordRequired": "비밀번호 필요",
     "ui.share.passwordHint": "이 공유는 비밀번호로 보호되어 있습니다. 내용을 보려면 비밀번호를 입력하세요.",
     "ui.share.passwordPlaceholder": "비밀번호를 입력하세요...",
+    "ui.share.tabActive": "공유 중",
+    "ui.share.tabEnded": "공유 종료",
+    "ui.share.noShares": "공유 기록이 없습니다",
+    "ui.share.viewShare": "공유 페이지 보기",
+    "ui.share.cancelShare": "공유 취소",
+    "ui.share.cancelConfirm": "이 노트의 공유를 취소하시겠습니까? 취소하면 공유 링크는 즉시 무효화됩니다.",
+    "ui.share.title": "노트 공유",
+    "ui.share.checking": "공유 상태 확인 중...",
+    "ui.share.create": "공유 시작",
+    "ui.share.success": "공유 성공",
+    "ui.share.shortLinkCreate": "단축 링크 생성",
+    "ui.share.link": "공유 링크",
+    "ui.share.shortLink": "단축 링크",
+    "ui.share.copy": "링크 복사",
+    "ui.share.copySuccess": "링크가 클립보드에 복사되었습니다",
+    "ui.share.shortLinkCopy": "단축 링크 복사",
+    "ui.share.cancelSuccess": "공유가 취소되었습니다",
+    "ui.share.preview": "미리보기",
 };

@@ -57,10 +57,12 @@ export default {
     "ui.common.selectAll": "全选",
     "ui.common.items": "条",
     "ui.common.count": "个",
+    "ui.common.saveSuccess": "保存成功",
     "ui.common.selectVault": "选择笔记库",
     "ui.common.sourceCode": "源代码",
     "ui.common.wideMode": "宽屏模式",
     "ui.common.narrowMode": "正常宽度",
+    "ui.common.fold": "收起",
 
 
     // --- ui.auth ---
@@ -97,6 +99,10 @@ export default {
     "ui.auth.userUid": "用户 UID: {{uid}}",
     "ui.auth.loginRequestFailed": "登录请求失败，请检查网络状态",
     "ui.auth.registerRequestFailed": "注册失败，请重试",
+
+
+    // --- ui.user ---
+    "ui.user.password": "访问密码",
 
     // --- ui.nav ---
     "ui.nav.navigation": "功能导航",
@@ -649,12 +655,16 @@ export default {
     "ui.share.create": "开启分享",
     "ui.share.creating": "正在开启...",
     "ui.share.success": "分享成功",
+    "ui.share.shortLinkCreate": "生成短链接",
     "ui.share.link": "分享链接",
+    "ui.share.shortLink": "短链接",
     "ui.share.copy": "复制链接",
     "ui.share.copySuccess": "链接已复制到剪贴板",
+    "ui.share.shortLinkCopy": "复制短链接",
     "ui.share.cancelSuccess": "已取消分享",
     "ui.share.buttonCreating": "正在开启...",
     "ui.share.passwordRequired": "需要密码",
     "ui.share.passwordHint": "该分享受密码保护，请输入密码以查看内容。",
     "ui.share.passwordPlaceholder": "请输入密码...",
+    "ui.share.preview": "内容预览",
 };

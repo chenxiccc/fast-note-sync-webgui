@@ -7,9 +7,13 @@ export interface ShareItem {
   res: Record<string, string[]>
   status: number          // 1: active, 2: cancelled
   notePath?: string       // note path, for share filter matching in note list
-  expires_at: string
-  created_at: string
-  updated_at: string
+  shortLink?: string
+  viewCount?: number
+  isPassword?: boolean
+  lastViewedAt?: string
+  expiresAt: string
+  createdAt: string
+  updatedAt: string
 }
 
 // 对应 dto.ShareListResponse (data 部分)
@@ -27,6 +31,8 @@ export interface ShareCreateResponse {
   id: number
   token: string
   type: string            // "note" | "file"
-  url: string             // 分享链接路径
-  expires_at: string
+  url?: string            // 分享链接路径
+  shortLink?: string
+  isPassword?: boolean
+  expiresAt: string
 }

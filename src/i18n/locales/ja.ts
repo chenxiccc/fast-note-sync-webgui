@@ -57,10 +57,12 @@ export default {
     "ui.common.selectAll": "すべて選択",
     "ui.common.items": "件",
     "ui.common.count": "個",
+    "ui.common.saveSuccess": "保存に成功しました",
     "ui.common.selectVault": "保管庫を選択",
     "ui.common.sourceCode": "ソースコード",
     "ui.common.wideMode": "ワイドモード",
     "ui.common.narrowMode": "通常幅",
+    "ui.common.fold": "閉じる",
 
 
     // --- ui.auth ---
@@ -97,6 +99,10 @@ export default {
     "ui.auth.userUid": "ユーザー UID: {{uid}}",
     "ui.auth.loginRequestFailed": "ログインリクエストに失敗しました。ネットワークを確認してください",
     "ui.auth.registerRequestFailed": "登録に失敗しました。もう一度お試しください",
+
+
+    // --- ui.user ---
+    "ui.user.password": "パスワード",
 
     // --- ui.nav ---
     "ui.nav.navigation": "ナビゲーション",
@@ -639,4 +645,22 @@ export default {
     "ui.share.passwordRequired": "パスワードが必要",
     "ui.share.passwordHint": "この共有はパスワードで保護されています。内容を表示するにはパスワードを入力してください。",
     "ui.share.passwordPlaceholder": "パスワードを入力してください...",
+    "ui.share.tabActive": "共有中",
+    "ui.share.tabEnded": "共有終了",
+    "ui.share.noShares": "共有履歴がありません",
+    "ui.share.viewShare": "共有ページを表示",
+    "ui.share.cancelShare": "共有を解除",
+    "ui.share.cancelConfirm": "このノートの共有を解除してもよろしいですか？解除すると共有リンクは直ちに無効になります。",
+    "ui.share.title": "ノートを共有",
+    "ui.share.checking": "共有状態を確認中...",
+    "ui.share.create": "共有を開始",
+    "ui.share.success": "共有に成功しました",
+    "ui.share.shortLinkCreate": "短縮リンクを生成",
+    "ui.share.link": "共有リンク",
+    "ui.share.shortLink": "短縮リンク",
+    "ui.share.copy": "リンクをコピー",
+    "ui.share.copySuccess": "リンクをクリップボードにコピーしました",
+    "ui.share.shortLinkCopy": "短縮リンクをコピー",
+    "ui.share.cancelSuccess": "共有を解除しました",
+    "ui.share.preview": "プレビュー",
 };

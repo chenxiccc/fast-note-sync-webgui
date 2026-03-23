@@ -737,7 +737,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
         if (mode === "preview") {
             return (
                 <div className={cn("markdown-preview", !autoHeight && "h-full overflow-y-auto", highlightClass)} onClick={handlePreviewClick}>
-                    <article className={cn("mx-auto px-5 py-10 transition-all duration-300", fullWidth ? "max-w-none" : "max-w-[900px]")}>
+                    <article className={cn("mx-auto px-5 py-10 transition-all duration-300", fullWidth ? "max-w-none" : "max-w-225")}>
                         <MarkdownRenderer content={previewMarkdown} />
                     </article>
                 </div>

@@ -111,6 +111,58 @@ export function useShareHandle() {
         }
     }, [getHeaders, handleTokenExpired])
 
+    // 更新分享密码 POST /api/share/password
+    const handleUpdateSharePassword = useCallback(async (
+        params: { vault: string; path: string; pathHash: string; password?: string },
+        callback?: () => void
+    ) => {
+        try {
+            const response = await fetch(`${env.API_URL}/api/share/password`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(params),
+            })
+            if (response.status === 401) {
+                handleTokenExpired()
+                return
+            }
+            const res = await response.json()
+            if (res.code > 0) {
+                callback?.()
+            } else {
+                toast.error(res.message || "Failed to update share password")
+            }
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : String(error))
+        }
+    }, [getHeaders, handleTokenExpired])
+
+    // 创建分享短链接 POST /api/share/short_link
+    const handleCreateShortLink = useCallback(async (
+        params: { vault: string; path: string; pathHash: string; isForce?: boolean },
+        callback: (shortUrl: string) => void
+    ) => {
+        try {
+            const response = await fetch(`${env.API_URL}/api/share/short_link`, {
+                method: "POST",
+                headers: getHeaders(),
+                body: JSON.stringify(params),
+            })
+            if (response.status === 401) {
+                handleTokenExpired()
+                return
+            }
+            const res = await response.json()
+            if (res.code > 0 && res.data) {
+                callback(res.data)
+            } else {
+                toast.error(res.message || "Failed to create short link")
+            }
+        } catch (error: unknown) {
+            toast.error(error instanceof Error ? error.message : String(error))
+        }
+    }, [getHeaders, handleTokenExpired])
+
     // 取消分享 DELETE /api/share
     // 支持按 id 取消，或按 path+pathHash+vault 取消
     const handleCancelShare = useCallback(async (
@@ -138,5 +190,5 @@ export function useShareHandle() {
         }
     }, [getHeaders, handleTokenExpired])
 
-    return { handleShareList, handleGetShareByPath, handleCreateShare, handleCancelShare }
+    return { handleShareList, handleGetShareByPath, handleCreateShare, handleCancelShare, handleUpdateSharePassword, handleCreateShortLink }
 }

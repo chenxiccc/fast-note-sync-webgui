@@ -1,4 +1,4 @@
-import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput, Share2, ExternalLink } from "lucide-react";
+import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput, Share2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -26,7 +26,7 @@ export type ShareFilterType = 'active' | 'ended' | null;
 export type ViewModeType = 'flat' | 'folder';
 
 const isShareActive = (s: ShareItem) =>
-    s.status === 1 && new Date(s.expires_at) > new Date();
+    s.status === 1 && new Date(s.expiresAt) > new Date();
 
 interface NoteListProps {
     vault: string;
@@ -57,7 +57,7 @@ interface NoteListProps {
 export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap, shareFilter, setShareFilter, viewMode, setViewMode }: NoteListProps) {
     const { t } = useTranslation();
     const { handleNoteList, handleDeleteNote, handleRestoreNote, handleFolderList, handleFolderNotes, handlePermanentDeleteNote, handleClearNoteRecycle, handleRenameNote, handleNoteListByPaths } = useNoteHandle();
-    const { handleShareList, handleCancelShare } = useShareHandle();
+    const { handleShareList } = useShareHandle();
     const { openConfirmDialog } = useConfirmDialog();
     const [notes, setNotes] = useState<Note[]>([]);
     const [loading, setLoading] = useState(false);
@@ -935,12 +935,12 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                 </Button>
                                             </Tooltip>
                                         )}
-                                        {!isRecycle && !noteIsShared && (
+                                        {!isRecycle && (
                                             <Tooltip content={t("ui.share.title")} side="top" delay={200}>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl text-muted-foreground hover:text-primary"
+                                                    className={`h-7 w-7 sm:h-8 sm:w-8 rounded-xl ${noteIsShared ? "text-green-600 hover:text-green-700 bg-green-500/10" : "text-muted-foreground hover:text-primary"}`}
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setSelectedShareNote(note);
@@ -948,49 +948,6 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                     }}
                                                 >
                                                     <Share2 className="h-4 w-4" />
-                                                </Button>
-                                            </Tooltip>
-                                        )}
-                                        {noteIsShared && (
-                                            <Tooltip content={t("ui.share.viewShare")} side="top" delay={200}>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl text-muted-foreground hover:text-green-600"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const s = sharePathMap[note.path];
-                                                        window.open(window.location.origin + s.url, '_blank');
-                                                    }}
-                                                >
-                                                    <ExternalLink className="h-4 w-4" />
-                                                </Button>
-                                            </Tooltip>
-                                        )}
-                                        {noteIsShared && (
-                                            <Tooltip content={t("ui.share.cancelShare")} side="top" delay={200}>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl text-muted-foreground hover:text-destructive"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const s = sharePathMap[note.path];
-                                                        openConfirmDialog(t("ui.share.cancelConfirm"), "confirm", () => {
-                                                            handleCancelShare({ id: s.id, vault }, () => {
-                                                                handleShareList({ pageSize: 10000 }, (data) => {
-                                                                    setShareItems(data.list || []);
-                                                                });
-                                                            });
-                                                        });
-                                                    }}
-                                                >
-                                                    <span className="relative inline-flex">
-                                                        <Share2 className="h-4 w-4" />
-                                                        <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                            <span className="block w-[130%] h-[1.5px] bg-current rotate-[-45deg] translate-x-[-5%]" />
-                                                        </span>
-                                                    </span>
                                                 </Button>
                                             </Tooltip>
                                         )}

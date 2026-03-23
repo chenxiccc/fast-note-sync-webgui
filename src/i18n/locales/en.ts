@@ -57,10 +57,12 @@ export default {
     "ui.common.selectAll": "Select All",
     "ui.common.items": "items",
     "ui.common.count": "pcs",
+    "ui.common.saveSuccess": "Saved successfully",
     "ui.common.selectVault": "Select Vault",
     "ui.common.sourceCode": "Source Code",
     "ui.common.wideMode": "Wide Mode",
     "ui.common.narrowMode": "Normal Width",
+    "ui.common.fold": "Fold",
 
 
     // --- ui.auth ---
@@ -97,6 +99,10 @@ export default {
     "ui.auth.userUid": "User UID: {{uid}}",
     "ui.auth.loginRequestFailed": "Login request failed, please check your network",
     "ui.auth.registerRequestFailed": "Registration failed, please try again",
+
+
+    // --- ui.user ---
+    "ui.user.password": "Password",
 
     // --- ui.nav ---
     "ui.nav.navigation": "Navigation",
@@ -556,6 +562,8 @@ export default {
 
     // --- api.handle ---
     "api.git.list.error": "Failed to get Git config list",
+    "ui.share.success": "Share shared successfully",
+    "ui.share.shortLinkCreate": "Generate Short Link",
     "api.git.save.success": "Config saved successfully",
     "api.git.save.error": "Failed to save config",
     "api.git.delete.success": "Config deleted successfully",
@@ -637,6 +645,11 @@ export default {
     "ui.share.poweredByPrefix": "Powered by ",
     "ui.share.poweredBySuffix": "",
     "ui.share.version": "Version",
+    "ui.share.link": "Share Link",
+    "ui.share.shortLink": "Short Link",
+    "ui.share.copy": "Copy Link",
+    "ui.share.copySuccess": "Link copied to clipboard",
+    "ui.share.shortLinkCopy": "Copy Short Link",
     "ui.share.tabActive": "Active",
     "ui.share.tabEnded": "Ended",
     "ui.share.noShares": "No shares found",
@@ -646,4 +659,5 @@ export default {
     "ui.share.passwordRequired": "Password Required",
     "ui.share.passwordHint": "This share is password protected. Please enter the password to view the content.",
     "ui.share.passwordPlaceholder": "Enter password...",
+    "ui.share.preview": "Preview Content",
 };
