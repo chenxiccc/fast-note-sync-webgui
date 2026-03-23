@@ -23,15 +23,13 @@ export function useShareHandle() {
 
     // 获取分享列表 GET /api/shares
     const handleShareList = useCallback(async (
-        params: { page?: number; pageSize?: number; sort_by?: string; sort_order?: string },
+        params: { page?: number; pageSize?: number },
         callback: (data: ShareListResponse) => void
     ) => {
         try {
             const query = new URLSearchParams()
             if (params.page) query.append("page", params.page.toString())
             if (params.pageSize) query.append("pageSize", params.pageSize.toString())
-            if (params.sort_by) query.append("sort_by", params.sort_by)
-            if (params.sort_order) query.append("sort_order", params.sort_order)
 
             const url = addCacheBuster(`${env.API_URL}/api/shares?${query.toString()}`)
             const response = await fetch(url, {

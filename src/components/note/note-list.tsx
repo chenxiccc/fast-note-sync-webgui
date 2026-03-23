@@ -976,9 +976,8 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         const s = sharePathMap[note.path];
-                                                        const itemVault = s.note_info?.vault_name || vault;
                                                         openConfirmDialog(t("ui.share.cancelConfirm"), "confirm", () => {
-                                                            handleCancelShare({ id: s.id, vault: itemVault }, () => {
+                                                            handleCancelShare({ id: s.id, vault }, () => {
                                                                 handleShareList({ pageSize: 10000 }, (data) => {
                                                                     setShareItems(data.list || []);
                                                                 });
