@@ -22,7 +22,7 @@ import { ShareItem } from "@/lib/types/share";
 type SearchMode = "path" | "content" | "regex";
 type SortBy = "mtime" | "ctime" | "path";
 type SortOrder = "desc" | "asc";
-export type ShareFilterType = 'active' | 'ended' | null;
+export type ShareFilterType = 'active' | null;
 export type ViewModeType = 'flat' | 'folder';
 
 const isShareActive = (s: ShareItem) =>
@@ -76,12 +76,16 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const [selectedShareNote, setSelectedShareNote] = useState<Note | null>(null);
     const [shareItems, setShareItems] = useState<ShareItem[]>([]);
 
-    // 非回收站模式下加载分享列表
-    useEffect(() => {
+    const refreshShareItems = () => {
         if (isRecycle) return;
         handleShareList({ pageSize: 10000 }, (data) => {
             setShareItems(data.list || []);
         });
+    };
+
+    // 非回收站模式下加载分享列表
+    useEffect(() => {
+        refreshShareItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [vault]);
 
@@ -94,14 +98,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         return set;
     }, [shareItems]);
 
-    // 活跃分享数 = 有活跃 share 记录的唯一笔记数
-    const activeShareCount = useMemo(() => activeNotePathSet.size, [activeNotePathSet]);
-
-    // 结束分享数 = 有 share 记录但无活跃 share 的唯一笔记数
-    const endedShareCount = useMemo(() => {
-        const allPaths = new Set(shareItems.map(s => s.notePath).filter(Boolean) as string[]);
-        return [...allPaths].filter(p => !activeNotePathSet.has(p)).length;
-    }, [shareItems, activeNotePathSet]);
+    const activeShareCount = activeNotePathSet.size;
 
     // notePath → ShareItem 映射（active 优先）
     const sharePathMap = useMemo(() => {
@@ -146,93 +143,57 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
 
         setLoading(true);
 
-        // 获取当前筛选条件对应的笔记路径列表（已按路径去重）
-        const getShareMatchPaths = (): string[] => {
-            if (shareFilter === 'active') {
-                return [...activeNotePathSet];
-            } else {
-                const allPaths = new Set(shareItems.map(s => s.notePath).filter(Boolean) as string[]);
-                return [...allPaths].filter(p => !activeNotePathSet.has(p));
+        // 分享筛选：全库平铺查询（修复子文件夹漏筛）
+        if (shareFilter === 'active' && !isRecycle) {
+            setFolders([]);
+            if (activeNotePathSet.size === 0) {
+                setNotes([]);
+                setTotalRows(0);
+                setLoading(false);
+                return;
             }
-        };
+
+            handleNoteListByPaths(vault, [...activeNotePathSet], currentPage, currentPageSize, sortBy, sortOrder, (data) => {
+                if (requestId !== noteRequestIdRef.current) return;
+                setNotes(data?.list || []);
+                setTotalRows(data?.pager?.totalRows || 0);
+                setLoading(false);
+            });
+            return;
+        }
 
         if (viewMode === "folder" && !isRecycle) {
-            // 目录模式：始终加载子目录，笔记按分享筛选决定查询方式
             handleFolderList(vault, currentPath, currentPathHash, (folderData) => {
                 if (requestId !== noteRequestIdRef.current) return;
                 setFolders(folderData || []);
 
-                if (shareFilter) {
-                    // 取符合筛选条件且直接位于当前目录的笔记路径
-                    const allMatchPaths = getShareMatchPaths();
-                    const folderMatchPaths = allMatchPaths.filter(p => {
-                        if (!currentPath) return !p.includes("/");
-                        const prefix = currentPath + "/";
-                        if (!p.startsWith(prefix)) return false;
-                        return !p.slice(prefix.length).includes("/");
-                    });
-
-                    if (folderMatchPaths.length === 0) {
-                        setNotes([]);
-                        setTotalRows(0);
-                        setLoading(false);
-                        return;
-                    }
-
-                    handleNoteListByPaths(vault, folderMatchPaths, currentPage, currentPageSize, sortBy, sortOrder, (data) => {
-                        if (requestId !== noteRequestIdRef.current) return;
-                        setNotes(data?.list || []);
-                        setTotalRows(data?.pager?.totalRows || 0);
-                        setLoading(false);
-                    });
-                } else {
-                    handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, (noteData) => {
-                        if (requestId !== noteRequestIdRef.current) return;
-                        setNotes(noteData?.list || []);
-                        setTotalRows(noteData?.pager?.totalRows || 0);
-                        setLoading(false);
-                    });
-                }
+                handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, (noteData) => {
+                    if (requestId !== noteRequestIdRef.current) return;
+                    setNotes(noteData?.list || []);
+                    setTotalRows(noteData?.pager?.totalRows || 0);
+                    setLoading(false);
+                });
             });
         } else {
-            // 平铺模式或回收站
-            if (shareFilter && !isRecycle) {
-                const matchPaths = getShareMatchPaths();
+            handleNoteList(vault, currentPage, currentPageSize, keyword, isRecycle, searchMode, false, sortBy, sortOrder, (data) => {
+                if (requestId !== noteRequestIdRef.current) return;
 
-                if (matchPaths.length === 0) {
-                    setNotes([]);
-                    setTotalRows(0);
-                    setLoading(false);
-                    return;
+                let filteredList = data?.list || [];
+
+                // 前端正则过滤（因为后端使用 LIKE 作为后备）
+                if (searchMode === "regex" && keyword && filteredList.length > 0) {
+                    try {
+                        const regex = new RegExp(keyword, "i");
+                        filteredList = filteredList.filter(note => regex.test(note.path));
+                    } catch {
+                        // 正则无效时不过滤
+                    }
                 }
 
-                handleNoteListByPaths(vault, matchPaths, currentPage, currentPageSize, sortBy, sortOrder, (data) => {
-                    if (requestId !== noteRequestIdRef.current) return;
-                    setNotes(data?.list || []);
-                    setTotalRows(data?.pager?.totalRows || 0);
-                    setLoading(false);
-                });
-            } else {
-                handleNoteList(vault, currentPage, currentPageSize, keyword, isRecycle, searchMode, false, sortBy, sortOrder, (data) => {
-                    if (requestId !== noteRequestIdRef.current) return;
-
-                    let filteredList = data?.list || [];
-
-                    // 前端正则过滤（因为后端使用 LIKE 作为后备）
-                    if (searchMode === "regex" && keyword && filteredList.length > 0) {
-                        try {
-                            const regex = new RegExp(keyword, "i");
-                            filteredList = filteredList.filter(note => regex.test(note.path));
-                        } catch {
-                            // 正则无效时不过滤
-                        }
-                    }
-
-                    setNotes(filteredList);
-                    setTotalRows(data?.pager?.totalRows || 0);
-                    setLoading(false);
-                });
-            }
+                setNotes(filteredList);
+                setTotalRows(data?.pager?.totalRows || 0);
+                setLoading(false);
+            });
         }
     };
 
@@ -240,7 +201,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         fetchNotes(page, pageSize, debouncedKeyword);
         setSelectedPaths(new Set()); // 清空选中
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter, shareItems]);
+    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter, activeNotePathSet.size]);
 
     // 当搜索内容、目录路径或浏览模式变化时，重置页码到第1页
     useEffect(() => {
@@ -429,6 +390,21 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                             </SelectContent>
                         </Select>
                     )}
+                    {!isRecycle && (
+                        <Button
+                            variant={shareFilter === 'active' ? 'default' : 'outline'}
+                            size="sm"
+                            className="rounded-xl text-xs h-8"
+                            onClick={() => {
+                                const next = shareFilter === 'active' ? null : 'active';
+                                setShareFilter(next);
+                                if (next) setPage(1);
+                            }}
+                        >
+                            <Share2 className="h-3 w-3 mr-1" />
+                            {t("ui.share.tabActive")} ({activeShareCount})
+                        </Button>
+                    )}
                 </div>
 
                 {/* 右侧：搜索和操作 */}
@@ -521,58 +497,31 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
             {/* 第二行工具栏：平铺/目录切换 (非回收站模式) */}
             {!isRecycle && (
                 <div className="flex flex-wrap items-center gap-4 py-2 px-2 bg-muted/30 rounded-xl border border-border/50">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center h-8 rounded-lg border border-border overflow-hidden bg-background shadow-sm">
-                            <button
-                                className={`px-4 h-full text-xs font-medium transition-colors ${viewMode === 'folder' ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-                                onClick={() => {
-                                    setSearchKeyword("");
-                                    setDebouncedKeyword("");
-                                    setViewMode("folder");
-                                }}
-                            >
-                                {t("ui.note.viewFolder")}
-                            </button>
-                            <button
-                                className={`px-4 h-full text-xs font-medium transition-colors border-l border-border ${viewMode === 'flat' ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
-                                onClick={() => setViewMode("flat")}
-                            >
-                                {t("ui.note.viewFlat")}
-                            </button>
+                    {!shareFilter && (
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center h-8 rounded-lg border border-border overflow-hidden bg-background shadow-sm">
+                                <button
+                                    className={`px-4 h-full text-xs font-medium transition-colors ${viewMode === 'folder' ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+                                    onClick={() => {
+                                        setSearchKeyword("");
+                                        setDebouncedKeyword("");
+                                        setViewMode("folder");
+                                    }}
+                                >
+                                    {t("ui.note.viewFolder")}
+                                </button>
+                                <button
+                                    className={`px-4 h-full text-xs font-medium transition-colors border-l border-border ${viewMode === 'flat' ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}
+                                    onClick={() => setViewMode("flat")}
+                                >
+                                    {t("ui.note.viewFlat")}
+                                </button>
+                            </div>
+                            <span className="text-sm font-medium text-muted-foreground mr-2">
+                                {totalRows} {t("ui.note.note")}
+                            </span>
                         </div>
-                        <span className="text-sm font-medium text-muted-foreground mr-2">
-                            {totalRows} {t("ui.note.note")}
-                        </span>
-                    </div>
-
-                    {/* 分享筛选按钮 */}
-                    <div className="flex items-center gap-1.5">
-                        <Button
-                            variant={shareFilter === 'active' ? 'default' : 'outline'}
-                            size="sm"
-                            className="rounded-xl text-xs h-8"
-                            onClick={() => {
-                                const next = shareFilter === 'active' ? null : 'active';
-                                setShareFilter(next);
-                                if (next) setPage(1);
-                            }}
-                        >
-                            <Share2 className="h-3 w-3 mr-1" />
-                            {t("ui.share.tabActive")} ({activeShareCount})
-                        </Button>
-                        <Button
-                            variant={shareFilter === 'ended' ? 'default' : 'outline'}
-                            size="sm"
-                            className="rounded-xl text-xs h-8"
-                            onClick={() => {
-                                const next = shareFilter === 'ended' ? null : 'ended';
-                                setShareFilter(next);
-                                if (next) setPage(1);
-                            }}
-                        >
-                            {t("ui.share.tabEnded")} ({endedShareCount})
-                        </Button>
-                    </div>
+                    )}
 
                     {/* 排序选择 */}
                     <div className="flex items-center h-8 rounded-xl border border-border overflow-hidden bg-background shadow-sm ml-auto">
@@ -733,8 +682,8 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                 </div>
             )}
 
-            {/* 面包屑导航 - 仅在目录模式下显示 */}
-            {viewMode === "folder" && !isRecycle && currentPath && (
+            {/* 面包屑导航 - 仅在目录模式且无分享筛选时显示 */}
+            {viewMode === "folder" && !isRecycle && currentPath && !shareFilter && (
                 <div className="flex items-center gap-2 px-1 text-sm text-muted-foreground overflow-x-auto whitespace-nowrap scrollbar-hide">
                     <button
                         className="hover:text-primary transition-colors flex items-center"
@@ -851,7 +800,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                         </span>
                                         <div className="min-w-0 flex-1">
                                             <h3 className="font-semibold text-card-foreground truncate flex items-center gap-1">
-                                                <span className="truncate">{(viewMode === "folder" && !isRecycle ? note.path.split("/").pop() : note.path)?.replace(/\.md$/, "")}</span>
+                                                <span className="truncate">{(viewMode === "folder" && !isRecycle && !shareFilter ? note.path.split("/").pop() : note.path)?.replace(/\.md$/, "")}</span>
                                                 {noteIsShared && (
                                                     <Share2 className="h-3 w-3 text-green-500 shrink-0" />
                                                 )}
@@ -1052,6 +1001,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                     pathHash={selectedShareNote.pathHash}
                     open={shareModalOpen}
                     onOpenChange={setShareModalOpen}
+                    onShareChange={refreshShareItems}
                 />
             )}
         </div>

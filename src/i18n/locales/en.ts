@@ -652,7 +652,6 @@ export default {
     "ui.share.copySuccess": "Link copied to clipboard",
     "ui.share.shortLinkCopy": "Copy Short Link",
     "ui.share.tabActive": "Active",
-    "ui.share.tabEnded": "Ended",
     "ui.share.noShares": "No shares found",
     "ui.share.viewShare": "View Share Page",
     "ui.share.cancelShare": "Cancel Share",

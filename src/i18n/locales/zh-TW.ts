@@ -647,7 +647,6 @@ export default {
     "ui.share.passwordHint": "該分享受密碼保護，請輸入密碼以查看內容。",
     "ui.share.passwordPlaceholder": "請輸入密碼...",
     "ui.share.tabActive": "分享中",
-    "ui.share.tabEnded": "分享結束",
     "ui.share.noShares": "暫無分享記錄",
     "ui.share.viewShare": "查看分享頁",
     "ui.share.cancelShare": "取消分享",
