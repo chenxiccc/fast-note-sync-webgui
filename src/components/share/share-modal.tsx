@@ -72,7 +72,7 @@ export function ShareModal({ vault, path, pathHash, open, onOpenChange }: ShareM
     const fetchShortLink = useCallback(() => {
         if (!shareData) return;
         setShortLinkLoading(true);
-        handleCreateShortLink({ vault, path, pathHash }, (url: string) => {
+        handleCreateShortLink({ vault, path, pathHash, url: getFullUrl(shareData) }, (url: string) => {
             setShortLink(url);
             setShortLinkLoading(false);
         });
