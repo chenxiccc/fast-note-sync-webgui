@@ -139,7 +139,7 @@ export function useShareHandle() {
 
     // 创建分享短链接 POST /api/share/short_link
     const handleCreateShortLink = useCallback(async (
-        params: { vault: string; path: string; pathHash: string; isForce?: boolean },
+        params: { vault: string; path: string; pathHash: string; url?: string; isForce?: boolean },
         callback: (shortUrl: string) => void
     ) => {
         try {
