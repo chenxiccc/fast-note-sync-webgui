@@ -647,7 +647,6 @@ export default {
     "ui.share.passwordHint": "この共有はパスワードで保護されています。内容を表示するにはパスワードを入力してください。",
     "ui.share.passwordPlaceholder": "パスワードを入力してください...",
     "ui.share.tabActive": "共有中",
-    "ui.share.tabEnded": "共有終了",
     "ui.share.noShares": "共有履歴がありません",
     "ui.share.viewShare": "共有ページを表示",
     "ui.share.cancelShare": "共有を解除",

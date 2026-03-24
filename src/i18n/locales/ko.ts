@@ -647,7 +647,6 @@ export default {
     "ui.share.passwordHint": "이 공유는 비밀번호로 보호되어 있습니다. 내용을 보려면 비밀번호를 입력하세요.",
     "ui.share.passwordPlaceholder": "비밀번호를 입력하세요...",
     "ui.share.tabActive": "공유 중",
-    "ui.share.tabEnded": "공유 종료",
     "ui.share.noShares": "공유 기록이 없습니다",
     "ui.share.viewShare": "공유 페이지 보기",
     "ui.share.cancelShare": "공유 취소",

@@ -645,7 +645,6 @@ export default {
     "ui.share.poweredBySuffix": " 提供支持",
     "ui.share.version": "版本",
     "ui.share.tabActive": "分享中",
-    "ui.share.tabEnded": "分享结束",
     "ui.share.noShares": "暂无分享记录",
     "ui.share.viewShare": "查看分享页",
     "ui.share.cancelShare": "取消分享",

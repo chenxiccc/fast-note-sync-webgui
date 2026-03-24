@@ -20,9 +20,10 @@ interface ShareModalProps {
     pathHash: string;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    onShareChange?: () => void;
 }
 
-export function ShareModal({ vault, path, pathHash, open, onOpenChange }: ShareModalProps) {
+export function ShareModal({ vault, path, pathHash, open, onOpenChange, onShareChange }: ShareModalProps) {
     const { t } = useTranslation();
     const { handleGetShareByPath, handleCreateShare, handleCancelShare, handleUpdateSharePassword, handleCreateShortLink } = useShareHandle();
 
@@ -85,6 +86,7 @@ export function ShareModal({ vault, path, pathHash, open, onOpenChange }: ShareM
             setShortLink(data.shortLink || "");
             setLoading(false);
             toast.success(t("ui.share.success"));
+            onShareChange?.();
         });
     };
 
@@ -94,6 +96,7 @@ export function ShareModal({ vault, path, pathHash, open, onOpenChange }: ShareM
             setShareData(null);
             setLoading(false);
             toast.success(t("ui.share.cancelSuccess"));
+            onShareChange?.();
         });
     };
 
