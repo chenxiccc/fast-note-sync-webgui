@@ -190,5 +190,32 @@ export function useShareHandle() {
         }
     }, [getHeaders, handleTokenExpired])
 
-    return { handleShareList, handleGetShareByPath, handleCreateShare, handleCancelShare, handleUpdateSharePassword, handleCreateShortLink }
+    // 获取指定 vault 下有效分享的笔记路径列表 GET /api/notes/share-paths
+    // Get active shared note paths for a vault
+    const handleGetNoteSharePaths = useCallback(async (
+        vault: string,
+        callback: (paths: string[]) => void
+    ) => {
+        try {
+            const url = addCacheBuster(`${env.API_URL}/api/notes/share-paths?vault=${encodeURIComponent(vault)}`)
+            const response = await fetch(url, {
+                method: "GET",
+                headers: getHeaders(),
+            })
+            if (response.status === 401) {
+                handleTokenExpired()
+                return
+            }
+            const res = await response.json()
+            if (res.code > 0 && res.data) {
+                callback(res.data as string[])
+            } else {
+                callback([])
+            }
+        } catch {
+            callback([])
+        }
+    }, [getHeaders, handleTokenExpired])
+
+    return { handleShareList, handleGetShareByPath, handleCreateShare, handleCancelShare, handleUpdateSharePassword, handleCreateShortLink, handleGetNoteSharePaths }
 }
