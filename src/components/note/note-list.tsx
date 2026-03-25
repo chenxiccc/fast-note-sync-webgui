@@ -92,6 +92,10 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     // Active note path set is already filtered by vault on backend
     const activeShareCount = activeSharePaths.size;
 
+    // 仅在分享筛选激活时才将 size 纳入 fetchNotes 依赖，避免正常模式下触发多余请求
+    // Only include share path count as a fetchNotes dependency when share filter is active
+    const shareFilterActiveDep = shareFilter === 'active' ? activeSharePaths.size : 0;
+
     // Debounce search keyword
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -183,7 +187,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         fetchNotes(page, pageSize, debouncedKeyword);
         setSelectedPaths(new Set()); // 清空选中
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter, activeSharePaths.size]);
+    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter, shareFilterActiveDep]);
 
     // 当搜索内容、目录路径或浏览模式变化时，重置页码到第1页
     useEffect(() => {
