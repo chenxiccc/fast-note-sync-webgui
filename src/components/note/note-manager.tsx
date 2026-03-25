@@ -1,4 +1,7 @@
 import { useVaultHandle } from "@/components/api-handle/vault-handle";
+
+// 获取主滚动容器 / Get the main scroll container
+const getMainEl = () => document.querySelector('main') as HTMLElement | null;
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import type { ShareFilterType, ViewModeType } from "@/components/note/note-list";
 import { Button } from "@/components/ui/button";
@@ -108,8 +111,7 @@ export function NoteManager({
     // NoteList is always mounted; restore scroll synchronously before browser paint
     useLayoutEffect(() => {
         if (view === "list" && scrollPositionRef.current > 0) {
-            const mainEl = document.querySelector('main');
-            mainEl?.scrollTo({ top: scrollPositionRef.current });
+            getMainEl()?.scrollTo({ top: scrollPositionRef.current });
         }
     }, [view]);
 
@@ -117,8 +119,7 @@ export function NoteManager({
 
     const handleSelectNote = useCallback((note: Note, previewMode: boolean = false) => {
         // 进入编辑器前保存列表滚动位置 / Save list scroll position before entering editor
-        const mainEl = document.querySelector('main');
-        scrollPositionRef.current = mainEl?.scrollTop ?? 0;
+        scrollPositionRef.current = getMainEl()?.scrollTop ?? 0;
         setSelectedNote(note);
         setInitialPreviewMode(previewMode);
         setView("editor");
