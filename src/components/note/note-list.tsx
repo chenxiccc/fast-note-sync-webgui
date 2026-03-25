@@ -77,7 +77,12 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const refreshShareItems = () => {
         if (isRecycle) return;
         handleGetNoteSharePaths(vault, (paths) => {
-            setActiveSharePaths(new Set(paths));
+            // 内容未变化时跳过更新，避免触发不必要的全列表重渲染
+            // Skip update when content is unchanged to avoid unnecessary full list re-render
+            setActiveSharePaths(prev => {
+                if (paths.length !== prev.size || !paths.every(p => prev.has(p))) return new Set(paths);
+                return prev;
+            });
         });
     };
 
@@ -149,16 +154,19 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         }
 
         if (viewMode === "folder" && !isRecycle) {
-            handleFolderList(vault, currentPath, currentPathHash, (folderData) => {
+            // 并行发起目录列表和目录笔记两个独立请求，减少首屏等待时间
+            // Issue both folder list and folder notes requests in parallel to reduce initial load time
+            Promise.all([
+                new Promise<Folder[] | null>(resolve => handleFolderList(vault, currentPath, currentPathHash, resolve)),
+                new Promise<{ list: Note[]; pager: { page: number; pageSize: number; totalRows: number } } | null>(resolve =>
+                    handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, resolve)
+                ),
+            ]).then(([folderData, noteData]) => {
                 if (requestId !== noteRequestIdRef.current) return;
                 setFolders(folderData || []);
-
-                handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, (noteData) => {
-                    if (requestId !== noteRequestIdRef.current) return;
-                    setNotes(noteData?.list || []);
-                    setTotalRows(noteData?.pager?.totalRows || 0);
-                    setLoading(false);
-                });
+                setNotes(noteData?.list || []);
+                setTotalRows(noteData?.pager?.totalRows || 0);
+                setLoading(false);
             });
         } else {
             handleNoteList(vault, currentPage, currentPageSize, keyword, isRecycle, searchMode, false, sortBy, sortOrder, (data) => {
