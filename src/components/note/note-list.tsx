@@ -89,14 +89,19 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [vault]);
 
-    // 按笔记路径去重后的活跃分享路径集合
+    // 按笔记路径去重后的活跃分享路径集合（仅当前 vault）
     const activeNotePathSet = useMemo(() => {
         const set = new Set<string>();
         for (const s of shareItems) {
-            if (s.notePath && isShareActive(s)) set.add(s.notePath);
+            if (s.notePath && isShareActive(s)) {
+                // 如果有 vaultName 则只计当前 vault 的分享，兼容旧数据（无 vaultName）
+                if (!s.vaultName || s.vaultName === vault) {
+                    set.add(s.notePath);
+                }
+            }
         }
         return set;
-    }, [shareItems]);
+    }, [shareItems, vault]);
 
     const activeShareCount = activeNotePathSet.size;
 

@@ -7,6 +7,7 @@ export interface ShareItem {
   res: Record<string, string[]>
   status: number          // 1: active, 2: cancelled
   notePath?: string       // note path, for share filter matching in note list
+  vaultName?: string      // vault name the note belongs to, for per-vault count filtering
   shortLink?: string
   viewCount?: number
   isPassword?: boolean
