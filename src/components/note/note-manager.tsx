@@ -40,6 +40,7 @@ export function NoteManager({
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [selectedNoteForHistory, setSelectedNoteForHistory] = useState<Note | null>(null);
     const vaultsLoaded = useRef(false);
+    const scrollPositionRef = useRef<number>(0);
 
     // Lifted state for pagination
     const [page, setPage] = useState(1);
@@ -103,9 +104,22 @@ export function NoteManager({
         setShareFilter(null);
     }, [vault]);
 
+    // 返回列表视图时恢复滚动位置 / Restore scroll position when returning to list view
+    useEffect(() => {
+        if (view === "list" && scrollPositionRef.current > 0) {
+            requestAnimationFrame(() => {
+                const mainEl = document.querySelector('main');
+                mainEl?.scrollTo({ top: scrollPositionRef.current });
+            });
+        }
+    }, [view]);
+
     const { handleNoteList } = useNoteHandle();
 
     const handleSelectNote = useCallback((note: Note, previewMode: boolean = false) => {
+        // 进入编辑器前保存列表滚动位置 / Save list scroll position before entering editor
+        const mainEl = document.querySelector('main');
+        scrollPositionRef.current = mainEl?.scrollTop ?? 0;
         setSelectedNote(note);
         setInitialPreviewMode(previewMode);
         setView("editor");
