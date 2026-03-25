@@ -107,10 +107,23 @@ export function NoteManager({
     // 返回列表视图时恢复滚动位置 / Restore scroll position when returning to list view
     useEffect(() => {
         if (view === "list" && scrollPositionRef.current > 0) {
-            requestAnimationFrame(() => {
+            const target = scrollPositionRef.current;
+            let retries = 0;
+            const MAX_RETRIES = 20; // 最多重试约 2 秒 / Retry up to ~2 seconds
+
+            const tryRestore = () => {
                 const mainEl = document.querySelector('main');
-                mainEl?.scrollTo({ top: scrollPositionRef.current });
-            });
+                if (!mainEl) return;
+                mainEl.scrollTo({ top: target });
+                // 若实际滚动量不足（列表数据未加载完），稍后重试
+                // Retry if scroll was clamped because list data is not yet rendered
+                if (mainEl.scrollTop < target - 10 && retries < MAX_RETRIES) {
+                    retries++;
+                    setTimeout(tryRestore, 100);
+                }
+            };
+
+            requestAnimationFrame(tryRestore);
         }
     }, [view]);
 
