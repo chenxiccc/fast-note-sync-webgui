@@ -1,5 +1,5 @@
 import { useVaultHandle } from "@/components/api-handle/vault-handle";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import type { ShareFilterType, ViewModeType } from "@/components/note/note-list";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
@@ -104,26 +104,12 @@ export function NoteManager({
         setShareFilter(null);
     }, [vault]);
 
-    // 返回列表视图时恢复滚动位置 / Restore scroll position when returning to list view
-    useEffect(() => {
+    // NoteList 始终挂载，在浏览器绘制前同步恢复滚动位置
+    // NoteList is always mounted; restore scroll synchronously before browser paint
+    useLayoutEffect(() => {
         if (view === "list" && scrollPositionRef.current > 0) {
-            const target = scrollPositionRef.current;
-            let retries = 0;
-            const MAX_RETRIES = 20; // 最多重试约 2 秒 / Retry up to ~2 seconds
-
-            const tryRestore = () => {
-                const mainEl = document.querySelector('main');
-                if (!mainEl) return;
-                mainEl.scrollTo({ top: target });
-                // 若实际滚动量不足（列表数据未加载完），稍后重试
-                // Retry if scroll was clamped because list data is not yet rendered
-                if (mainEl.scrollTop < target - 10 && retries < MAX_RETRIES) {
-                    retries++;
-                    setTimeout(tryRestore, 100);
-                }
-            };
-
-            requestAnimationFrame(tryRestore);
+            const mainEl = document.querySelector('main');
+            mainEl?.scrollTo({ top: scrollPositionRef.current });
         }
     }, [view]);
 
@@ -240,67 +226,65 @@ export function NoteManager({
         );
     }
 
-    let content;
-    if (view === "editor") {
-        if (selectedNote?.path?.endsWith(".canvas")) {
-            content = (
-                <CanvasViewer
-                    vault={vault}
-                    note={selectedNote}
-                    onBack={handleBack}
-                    onWikiLinkClick={handleWikiLinkClick}
-                />
-            );
-        } else {
-            content = (
-                <NoteEditor
-                    vault={vault}
-                    note={selectedNote}
-                    onBack={handleBack}
-                    onNavigateToFolder={handleNavigateToFolder}
-                    onSaveSuccess={handleSaveSuccess}
-                    onViewHistory={() => selectedNote && handleViewHistory(selectedNote)}
-                    isMaximized={isMaximized}
-                    onToggleMaximize={onToggleMaximize}
-                    isRecycle={isRecycle}
-                    initialPreviewMode={initialPreviewMode}
-                    onWikiLinkClick={handleWikiLinkClick}
-                />
-            );
-        }
-    } else {
-        content = (
-            <NoteList
-                vault={vault}
-                vaults={vaults}
-                onVaultChange={onVaultChange}
-                onSelectNote={handleSelectNote}
-                onCreateNote={handleCreateNote}
-                page={page}
-                setPage={setPage}
-                pageSize={pageSize}
-                setPageSize={setPageSize}
-                searchKeyword={searchKeyword}
-                setSearchKeyword={setSearchKeyword}
-                onViewHistory={handleViewHistory}
-                isRecycle={isRecycle}
-                currentPath={currentPath}
-                setCurrentPath={setCurrentPath}
-                currentPathHash={currentPathHash}
-                setCurrentPathHash={setCurrentPathHash}
-                pathHashMap={pathHashMap}
-                setPathHashMap={setPathHashMap}
-                shareFilter={shareFilter}
-                setShareFilter={setShareFilter}
-                viewMode={viewMode}
-                setViewMode={setViewMode}
-            />
-        );
-    }
-
     return (
         <>
-            {content}
+            {/* NoteList 始终挂载，editor 视图时用 hidden 隐藏 */}
+            {/* NoteList is always mounted; hidden attribute hides it in editor view */}
+            <div hidden={view === "editor"}>
+                <NoteList
+                    vault={vault}
+                    vaults={vaults}
+                    onVaultChange={onVaultChange}
+                    onSelectNote={handleSelectNote}
+                    onCreateNote={handleCreateNote}
+                    page={page}
+                    setPage={setPage}
+                    pageSize={pageSize}
+                    setPageSize={setPageSize}
+                    searchKeyword={searchKeyword}
+                    setSearchKeyword={setSearchKeyword}
+                    onViewHistory={handleViewHistory}
+                    isRecycle={isRecycle}
+                    currentPath={currentPath}
+                    setCurrentPath={setCurrentPath}
+                    currentPathHash={currentPathHash}
+                    setCurrentPathHash={setCurrentPathHash}
+                    pathHashMap={pathHashMap}
+                    setPathHashMap={setPathHashMap}
+                    shareFilter={shareFilter}
+                    setShareFilter={setShareFilter}
+                    viewMode={viewMode}
+                    setViewMode={setViewMode}
+                />
+            </div>
+
+            {/* editor 视图时渲染 NoteEditor 或 CanvasViewer */}
+            {/* Render NoteEditor or CanvasViewer only in editor view */}
+            {view === "editor" && (
+                selectedNote?.path?.endsWith(".canvas") ? (
+                    <CanvasViewer
+                        vault={vault}
+                        note={selectedNote}
+                        onBack={handleBack}
+                        onWikiLinkClick={handleWikiLinkClick}
+                    />
+                ) : (
+                    <NoteEditor
+                        vault={vault}
+                        note={selectedNote}
+                        onBack={handleBack}
+                        onNavigateToFolder={handleNavigateToFolder}
+                        onSaveSuccess={handleSaveSuccess}
+                        onViewHistory={() => selectedNote && handleViewHistory(selectedNote)}
+                        isMaximized={isMaximized}
+                        onToggleMaximize={onToggleMaximize}
+                        isRecycle={isRecycle}
+                        initialPreviewMode={initialPreviewMode}
+                        onWikiLinkClick={handleWikiLinkClick}
+                    />
+                )
+            )}
+
             {selectedNoteForHistory && (
                 <NoteHistoryModal
                     isOpen={historyModalOpen}
