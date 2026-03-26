@@ -4,7 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
 import { useNoteHandle } from "@/components/api-handle/note-handle";
 import { useShareHandle } from "@/components/api-handle/share-handle";
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useAppStore } from "@/stores/app-store";
@@ -16,7 +16,6 @@ import { Folder } from "@/lib/types/folder";
 import { Note } from "@/lib/types/note";
 import { format } from "date-fns";
 import { ShareModal } from "@/components/share/share-modal";
-import { ShareItem } from "@/lib/types/share";
 
 
 type SearchMode = "path" | "content" | "regex";
@@ -24,9 +23,6 @@ type SortBy = "mtime" | "ctime" | "path";
 type SortOrder = "desc" | "asc";
 export type ShareFilterType = 'active' | null;
 export type ViewModeType = 'flat' | 'folder';
-
-const isShareActive = (s: ShareItem) =>
-    s.status === 1 && new Date(s.expiresAt) > new Date();
 
 interface NoteListProps {
     vault: string;
@@ -57,7 +53,7 @@ interface NoteListProps {
 export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateNote, page, setPage, pageSize, setPageSize, onViewHistory, isRecycle = false, searchKeyword, setSearchKeyword, currentPath, setCurrentPath, currentPathHash, setCurrentPathHash, pathHashMap, setPathHashMap, shareFilter, setShareFilter, viewMode, setViewMode }: NoteListProps) {
     const { t } = useTranslation();
     const { handleNoteList, handleDeleteNote, handleRestoreNote, handleFolderList, handleFolderNotes, handlePermanentDeleteNote, handleClearNoteRecycle, handleRenameNote, handleNoteListByPaths } = useNoteHandle();
-    const { handleShareList } = useShareHandle();
+    const { handleGetNoteSharePaths } = useShareHandle();
     const { openConfirmDialog } = useConfirmDialog();
     const [notes, setNotes] = useState<Note[]>([]);
     const [loading, setLoading] = useState(false);
@@ -74,41 +70,36 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const { trashType, setModule } = useAppStore();
     const [shareModalOpen, setShareModalOpen] = useState(false);
     const [selectedShareNote, setSelectedShareNote] = useState<Note | null>(null);
-    const [shareItems, setShareItems] = useState<ShareItem[]>([]);
+    // 仅存储有效分享的笔记路径集合，替代原来的完整 ShareItem 列表
+    // Only store active shared note paths, replacing the full ShareItem list
+    const [activeSharePaths, setActiveSharePaths] = useState<Set<string>>(new Set());
 
     const refreshShareItems = () => {
         if (isRecycle) return;
-        handleShareList({ pageSize: 10000 }, (data) => {
-            setShareItems(data.list || []);
+        handleGetNoteSharePaths(vault, (paths) => {
+            // 内容未变化时跳过更新，避免触发不必要的全列表重渲染
+            // Skip update when content is unchanged to avoid unnecessary full list re-render
+            setActiveSharePaths(prev => {
+                if (paths.length !== prev.size || !paths.every(p => prev.has(p))) return new Set(paths);
+                return prev;
+            });
         });
     };
 
-    // 非回收站模式下加载分享列表
+    // 非回收站模式下异步懒加载分享路径（不阻塞首屏笔记列表渲染）
+    // Lazy-load share paths asynchronously after mount (does not block first-screen note list)
     useEffect(() => {
         refreshShareItems();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [vault]);
 
-    // 按笔记路径去重后的活跃分享路径集合
-    const activeNotePathSet = useMemo(() => {
-        const set = new Set<string>();
-        for (const s of shareItems) {
-            if (s.notePath && isShareActive(s)) set.add(s.notePath);
-        }
-        return set;
-    }, [shareItems]);
+    // 活跃分享路径集合即为 activeSharePaths（已按 vault 过滤）
+    // Active note path set is already filtered by vault on backend
+    const activeShareCount = activeSharePaths.size;
 
-    const activeShareCount = activeNotePathSet.size;
-
-    // notePath → ShareItem 映射（active 优先）
-    const sharePathMap = useMemo(() => {
-        const map: Record<string, ShareItem> = {};
-        for (const s of shareItems) {
-            if (!s.notePath) continue;
-            if (!map[s.notePath] || isShareActive(s)) map[s.notePath] = s;
-        }
-        return map;
-    }, [shareItems]);
+    // 仅在分享筛选激活时才将 size 纳入 fetchNotes 依赖，避免正常模式下触发多余请求
+    // Only include share path count as a fetchNotes dependency when share filter is active
+    const shareFilterActiveDep = shareFilter === 'active' ? activeSharePaths.size : 0;
 
     // Debounce search keyword
     useEffect(() => {
@@ -146,14 +137,14 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         // 分享筛选：全库平铺查询（修复子文件夹漏筛）
         if (shareFilter === 'active' && !isRecycle) {
             setFolders([]);
-            if (activeNotePathSet.size === 0) {
+            if (activeSharePaths.size === 0) {
                 setNotes([]);
                 setTotalRows(0);
                 setLoading(false);
                 return;
             }
 
-            handleNoteListByPaths(vault, [...activeNotePathSet], currentPage, currentPageSize, sortBy, sortOrder, (data) => {
+            handleNoteListByPaths(vault, [...activeSharePaths], currentPage, currentPageSize, sortBy, sortOrder, (data) => {
                 if (requestId !== noteRequestIdRef.current) return;
                 setNotes(data?.list || []);
                 setTotalRows(data?.pager?.totalRows || 0);
@@ -163,16 +154,19 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         }
 
         if (viewMode === "folder" && !isRecycle) {
-            handleFolderList(vault, currentPath, currentPathHash, (folderData) => {
+            // 并行发起目录列表和目录笔记两个独立请求，减少首屏等待时间
+            // Issue both folder list and folder notes requests in parallel to reduce initial load time
+            Promise.all([
+                new Promise<Folder[] | null>(resolve => handleFolderList(vault, currentPath, currentPathHash, resolve)),
+                new Promise<{ list: Note[]; pager: { page: number; pageSize: number; totalRows: number } } | null>(resolve =>
+                    handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, resolve)
+                ),
+            ]).then(([folderData, noteData]) => {
                 if (requestId !== noteRequestIdRef.current) return;
                 setFolders(folderData || []);
-
-                handleFolderNotes(vault, currentPath, currentPathHash, currentPage, currentPageSize, sortBy, sortOrder, (noteData) => {
-                    if (requestId !== noteRequestIdRef.current) return;
-                    setNotes(noteData?.list || []);
-                    setTotalRows(noteData?.pager?.totalRows || 0);
-                    setLoading(false);
-                });
+                setNotes(noteData?.list || []);
+                setTotalRows(noteData?.pager?.totalRows || 0);
+                setLoading(false);
             });
         } else {
             handleNoteList(vault, currentPage, currentPageSize, keyword, isRecycle, searchMode, false, sortBy, sortOrder, (data) => {
@@ -201,7 +195,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         fetchNotes(page, pageSize, debouncedKeyword);
         setSelectedPaths(new Set()); // 清空选中
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter, activeNotePathSet.size]);
+    }, [vault, page, pageSize, debouncedKeyword, isRecycle, searchMode, sortBy, sortOrder, viewMode, currentPath, shareFilter, shareFilterActiveDep]);
 
     // 当搜索内容、目录路径或浏览模式变化时，重置页码到第1页
     useEffect(() => {
@@ -775,7 +769,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
 
                         {/* 笔记列表 */}
                         {Array.isArray(notes) && notes.map((note) => {
-                            const noteIsShared = !isRecycle && !!sharePathMap[note.path] && isShareActive(sharePathMap[note.path]);
+                            const noteIsShared = !isRecycle && activeSharePaths.has(note.path);
                             return (<article
                                 key={`note-${note.pathHash}`}
                                 className="rounded-xl border border-border bg-card p-2.5 sm:p-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30"
