@@ -53,7 +53,7 @@ export function WSClientList() {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="p-1.5 bg-background rounded-md border border-border/50">
-                                            {client.platformInfo.isMobile ? (
+                                            {client.platformInfo?.isMobile ? (
                                                 <Smartphone className="h-3.5 w-3.5 text-primary" />
                                             ) : (
                                                 <Laptop className="h-3.5 w-3.5 text-primary" />
