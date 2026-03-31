@@ -32,7 +32,7 @@ export function useWSClientInfo() {
     const [error, setError] = useState<string | null>(null);
     const token = localStorage.getItem("token");
 
-    const fetchWSClientInfo = useCallback(async (signal?: AbortSignal) => {
+    const fetchWSClientInfo = useCallback(async (isActive?: { current: boolean }) => {
         if (!token) return;
         setIsLoading(true);
         setError(null);
@@ -44,7 +44,6 @@ export function useWSClientInfo() {
                     "Authorization": `Bearer ${token}`,
                     Lang: getBrowserLang(),
                 },
-                signal,
             });
 
             if (!response.ok) {
@@ -52,7 +51,7 @@ export function useWSClientInfo() {
             }
 
             const res = await response.json();
-            if (signal?.aborted) {
+            if (isActive && !isActive.current) {
                 return;
             }
             if (res.code === 1 || res.status === true) {
@@ -60,26 +59,28 @@ export function useWSClientInfo() {
             } else {
                 setError(res.message || "Failed to get WS clients");
             }
-        } catch (error) {
-            if (error instanceof DOMException && error.name === "AbortError") {
+        } catch (err: unknown) {
+            if (isActive && !isActive.current) {
                 return;
             }
-            if (!signal?.aborted) {
-                setError("Failed to get WS clients");
-                console.error("WS client fetch error:", error);
+            const error = err as Error;
+            if (error.name === "AbortError") {
+                return;
             }
+            setError("Failed to get WS clients");
+            console.error("WS client fetch error:", error);
         } finally {
-            if (!signal?.aborted) {
+            if (!isActive || isActive.current) {
                 setIsLoading(false);
             }
         }
     }, [token]);
 
     useEffect(() => {
-        const controller = new AbortController();
-        fetchWSClientInfo(controller.signal);
+        const isActive = { current: true };
+        fetchWSClientInfo(isActive);
         return () => {
-            controller.abort();
+            isActive.current = false;
         };
     }, [fetchWSClientInfo]);
 

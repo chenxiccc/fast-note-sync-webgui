@@ -72,7 +72,7 @@ export function useSystemInfo() {
     const [error, setError] = useState<string | null>(null);
     const token = localStorage.getItem("token");
 
-    const fetchSystemInfo = useCallback(async (signal?: AbortSignal) => {
+    const fetchSystemInfo = useCallback(async (isActive?: { current: boolean }) => {
         if (!token) return;
         setIsLoading(true);
         setError(null);
@@ -84,7 +84,6 @@ export function useSystemInfo() {
                     "Authorization": `Bearer ${token}`,
                     Lang: getBrowserLang(),
                 },
-                signal,
             });
 
             if (!response.ok) {
@@ -92,7 +91,7 @@ export function useSystemInfo() {
             }
 
             const res = await response.json();
-            if (signal?.aborted) {
+            if (isActive && !isActive.current) {
                 return;
             }
             if (res.code === 0 || (res.code < 100 && res.code > 0)) {
@@ -100,28 +99,28 @@ export function useSystemInfo() {
             } else {
                 setError(res.message || "Failed to get system info");
             }
-        } catch (error) {
-            if (error instanceof DOMException && error.name === "AbortError") {
+        } catch (error: any) {
+            if (isActive && !isActive.current) {
                 return;
             }
-            if (!signal?.aborted) {
-                setError("Failed to get system info");
-                console.error("System info fetch error:", error);
+            if (error.name === "AbortError") {
+                return;
             }
+            setError("Failed to get system info");
+            console.error("System info fetch error:", error);
         } finally {
-            if (!signal?.aborted) {
+            if (!isActive || isActive.current) {
                 setIsLoading(false);
             }
         }
     }, [token]);
 
     useEffect(() => {
-        const controller = new AbortController();
-
-        fetchSystemInfo(controller.signal);
+        const isActive = { current: true };
+        fetchSystemInfo(isActive);
 
         return () => {
-            controller.abort();
+            isActive.current = false;
         };
     }, [fetchSystemInfo]);
 

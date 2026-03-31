@@ -1,5 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog";
-import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, Settings, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe, Database, Network, ChevronLeft, ChevronRight, SlidersHorizontal, BookOpen, Share2, Zap, Router } from "lucide-react";
+import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe, Database, ChevronLeft, ChevronRight, SlidersHorizontal, BookOpen, Share2, Zap, Router } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
@@ -83,6 +83,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
     const [savingUserDb, setSavingUserDb] = useState(false)
     const [isTestingUserDb, setIsTestingUserDb] = useState(false)
     const [hasTestedUserDb, setHasTestedUserDb] = useState(false)
+    const [activeTab, setActiveTab] = useState("font")
 
     const token = localStorage.getItem("token")
 
@@ -340,26 +341,26 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
     }
 
     useEffect(() => {
-        const controller = new AbortController()
+        let isActive = true
 
         const fetchConfig = async () => {
             if (isDashboard) {
-                setLoading(false)
+                if (isActive) setLoading(false)
                 return
             }
 
-            setLoading(true)
+            if (isActive) setLoading(true)
             try {
                 const headers = { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() }
 
                 const [configResponse, ngrokResponse, cloudflareResponse, userDbResponse] = await Promise.all([
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config"), { headers, signal: controller.signal }),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/ngrok"), { headers, signal: controller.signal }),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), { headers, signal: controller.signal }),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database"), { headers, signal: controller.signal })
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config"), { headers }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/ngrok"), { headers }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), { headers }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database"), { headers })
                 ])
 
-                if (controller.signal.aborted) return
+                if (!isActive) return
 
                 const [configRes, ngrokRes, cloudflareRes, userDbRes] = await Promise.all([
                     configResponse.json(),
@@ -368,7 +369,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                     userDbResponse.json()
                 ])
 
-                if (controller.signal.aborted) return
+                if (!isActive) return
 
                 if (configRes.code === 0 || (configRes.code < 100 && configRes.code > 0)) {
                     setConfig(configRes.data)
@@ -387,16 +388,15 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
 
                 if (userDbRes.code === 0 || (userDbRes.code < 100 && userDbRes.code > 0)) {
                     setUserDbConfig(userDbRes.data)
-                    setHasTestedUserDb(true) // 初始加载认为是已通过测试的配置
+                    setHasTestedUserDb(true)
                 }
-            } catch (error) {
-                if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) {
-                    return
-                }
+            } catch (err: any) {
+                if (!isActive) return
+                console.warn("SystemSettings fetch error:", err)
                 toast.error(t("ui.common.error"))
                 if (!config) onBack?.()
             } finally {
-                if (!controller.signal.aborted) {
+                if (isActive) {
                     setLoading(false)
                 }
             }
@@ -404,7 +404,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         fetchConfig()
 
         return () => {
-            controller.abort()
+            isActive = false
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [onBack, t, token, isDashboard])
@@ -422,10 +422,65 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
     }, [])
 
     useEffect(() => {
+        // 当 config 加载后，TabsList 才会渲染，所以此时需要手动触发一次初始检查
         handleScroll()
-        window.addEventListener('resize', handleScroll)
-        return () => window.removeEventListener('resize', handleScroll)
-    }, [handleScroll])
+
+        const currentContainer = scrollContainerRef.current
+        if (currentContainer) {
+            // 使用 ResizeObserver 监听容器尺寸变化，确保在内容分发或字体加载后依然准确
+            const resizeObserver = new ResizeObserver(() => {
+                handleScroll()
+            })
+            resizeObserver.observe(currentContainer)
+            
+            window.addEventListener('resize', handleScroll)
+            return () => {
+                resizeObserver.disconnect()
+                window.removeEventListener('resize', handleScroll)
+            }
+        }
+    }, [handleScroll, config])
+
+    useEffect(() => {
+        if (!scrollContainerRef.current) return
+        // 查找当前激活的 Tab 触发器
+        const activeElement = scrollContainerRef.current.querySelector('[data-state="active"]') as HTMLElement
+        if (activeElement) {
+            activeElement.scrollIntoView({
+                behavior: "smooth",
+                block: "nearest",
+                inline: "nearest"
+            })
+        }
+    }, [activeTab])
+
+    // 鼠标拖动滚动逻辑支持
+    const isDragging = useRef(false)
+    const startX = useRef(0)
+    const scrollLeftStart = useRef(0)
+
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        if (!scrollContainerRef.current) return
+        isDragging.current = true
+        startX.current = e.pageX - scrollContainerRef.current.offsetLeft
+        scrollLeftStart.current = scrollContainerRef.current.scrollLeft
+    }, [])
+
+    const handleMouseLeave = useCallback(() => {
+        isDragging.current = false
+    }, [])
+
+    const handleMouseUp = useCallback(() => {
+        isDragging.current = false
+    }, [])
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+        if (!isDragging.current || !scrollContainerRef.current) return
+        e.preventDefault()
+        const x = e.pageX - scrollContainerRef.current.offsetLeft
+        const walk = (x - startX.current) * 1.5 // 滚动系数
+        scrollContainerRef.current.scrollLeft = scrollLeftStart.current - walk
+    }, [])
 
     if (loading) return <div className="p-8 text-center">{t("ui.common.loading")}</div>
     if (!config && !isDashboard) return <div className="p-8 text-center text-destructive">{t("ui.common.error")}</div>
@@ -565,45 +620,52 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                     </div>
                 ) : config ? (
                     <div className="rounded-xl border border-border bg-card custom-shadow overflow-hidden flex flex-col">
-                        <Tabs defaultValue="font" className="w-full">
-                            <div className="bg-muted/5 relative overflow-hidden group">
+                        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                            <div className="bg-muted/60 h-12 relative overflow-hidden group/tabs">
                                 {showLeftScroll && (
-                                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-20 pointer-events-none flex items-center justify-start">
+                                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-muted/60 to-transparent z-20 pointer-events-none flex items-center justify-start">
                                         <ChevronLeft className="h-4 w-4 text-muted-foreground ml-1" />
                                     </div>
                                 )}
+                                {/* 底层全局边框线 */}
+                                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-border/60 z-0" />
+                                
                                 <TabsList 
                                     ref={scrollContainerRef} 
                                     onScroll={handleScroll}
-                                    className="w-full h-auto flex flex-nowrap justify-start overflow-x-auto bg-transparent p-0 gap-0 no-scrollbar relative"
+                                    onMouseDown={handleMouseDown}
+                                    onMouseLeave={handleMouseLeave}
+                                    onMouseUp={handleMouseUp}
+                                    onMouseMove={handleMouseMove}
+                                    className="w-full h-12 flex flex-nowrap justify-start items-stretch overflow-x-auto bg-transparent p-0 gap-0 no-scrollbar relative z-10 cursor-grab active:cursor-grabbing select-none transition-shadow"
                                 >
-                                    <TabsTrigger value="font" className="flex-none px-6 h-12 rounded-none border-y-transparent border-l-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-r-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                    <TabsTrigger value="font" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 bg-transparent data-[state=active]:bg-card transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
                                         <SlidersHorizontal className="h-4 w-4 mr-2" />
                                         {t("ui.settings.fontConfig")}
                                     </TabsTrigger>
-                                    <TabsTrigger value="notes" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-x-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                    <TabsTrigger value="notes" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 bg-transparent data-[state=active]:bg-card transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
                                         <BookOpen className="h-4 w-4 mr-2" />
                                         {t("ui.settings.noteRelatedConfig")}
                                     </TabsTrigger>
-                                    <TabsTrigger value="security" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-x-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                    <TabsTrigger value="security" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 bg-transparent data-[state=active]:bg-card transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
                                         <Shield className="h-4 w-4 mr-2" />
                                         {t("ui.settings.securityConfig")}
                                     </TabsTrigger>
-                                    <TabsTrigger value="share" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-x-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                    <TabsTrigger value="share" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 bg-transparent data-[state=active]:bg-card transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
                                         <Share2 className="h-4 w-4 mr-2" />
                                         {t("ui.settings.systemConfig")}
                                     </TabsTrigger>
-                                    <TabsTrigger value="database" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-x-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                    <TabsTrigger value="database" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 bg-transparent data-[state=active]:bg-card transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
                                         <Database className="h-4 w-4 mr-2" />
                                         {t("ui.settings.userDatabaseConfig")}
                                     </TabsTrigger>
-                                    <TabsTrigger value="tunnel" className="flex-none px-6 h-12 rounded-none border-y-transparent border-r-transparent border-l-transparent border-b border-border bg-muted/60 data-[state=active]:border-l-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                    <TabsTrigger value="tunnel" className="flex-none px-6 h-12 rounded-none border-y-transparent border-r-transparent border-l-transparent bg-transparent data-[state=active]:bg-card transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
                                         <Router className="h-4 w-4 mr-2" />
                                         {t("ui.settings.tunnelGatewayConfig")}
                                     </TabsTrigger>
                                 </TabsList>
                                 {showRightScroll && (
-                                    <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-20 pointer-events-none flex items-center justify-end">
+                                    <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-muted/60 to-transparent z-20 pointer-events-none flex items-center justify-end">
                                         <ChevronRight className="h-4 w-4 text-muted-foreground mr-1" />
                                     </div>
                                 )}
