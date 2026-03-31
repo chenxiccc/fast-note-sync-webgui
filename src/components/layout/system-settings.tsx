@@ -1,5 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog";
-import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, Settings, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe } from "lucide-react";
+import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, Settings, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe, Database, Network } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
 import { useState, useEffect, useCallback } from "react";
@@ -46,6 +46,20 @@ interface CloudflareConfig {
     logEnabled: boolean
 }
 
+interface UserDatabaseConfig {
+    type: string
+    host?: string
+    port?: number
+    user?: string
+    password?: string
+    name?: string
+    maxIdleConns?: number
+    maxOpenConns?: number
+    connMaxLifetime?: string
+    connMaxIdleTime?: string
+    maxWriteConcurrency?: number
+}
+
 export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }: { onBack?: () => void, isDashboard?: boolean, isAdmin?: boolean }) {
     const { t } = useTranslation()
     const [config, setConfig] = useState<SystemConfig | null>(null)
@@ -64,6 +78,10 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
     const [hasTestedCloudflared, setHasTestedCloudflared] = useState(false)
     const [showDownloadError, setShowDownloadError] = useState(false)
     const [downloadErrorMessage, setDownloadErrorMessage] = useState("")
+    const [userDbConfig, setUserDbConfig] = useState<UserDatabaseConfig | null>(null)
+    const [savingUserDb, setSavingUserDb] = useState(false)
+    const [isTestingUserDb, setIsTestingUserDb] = useState(false)
+    const [hasTestedUserDb, setHasTestedUserDb] = useState(false)
 
     const token = localStorage.getItem("token")
 
@@ -92,6 +110,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
 
     const updateCloudflareConfig = useCallback((updates: Partial<CloudflareConfig>) => {
         setCloudflareConfig(prev => prev ? { ...prev, ...updates } : null)
+    }, [])
+
+    const updateUserDbConfig = useCallback((updates: Partial<UserDatabaseConfig>) => {
+        setUserDbConfig(prev => prev ? { ...prev, ...updates } : null)
+        setHasTestedUserDb(false)
     }, [])
 
     const handleSaveConfig = async () => {
@@ -191,6 +214,65 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         }
     }
 
+    const handleSaveUserDb = async () => {
+        if (!userDbConfig) return
+        if (!hasTestedUserDb) {
+            toast.error(t("ui.settings.testRequiredBeforeSave"))
+            return
+        }
+        setSavingUserDb(true)
+        try {
+            const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database"), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                    Lang: getBrowserLang(),
+                },
+                body: JSON.stringify(userDbConfig),
+            })
+            const res = await response.json()
+            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+                toast.success(t("ui.settings.saveSuccess"))
+            } else {
+                toast.error(res.message || t("ui.settings.saveFailed"))
+            }
+        } catch {
+            toast.error(t("ui.settings.saveFailed"))
+        } finally {
+            setSavingUserDb(false)
+        }
+    }
+
+    const handleTestUserDb = async () => {
+        if (!userDbConfig) return
+        setIsTestingUserDb(true)
+        try {
+            const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database/test"), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                    Lang: getBrowserLang(),
+                },
+                body: JSON.stringify(userDbConfig),
+            })
+            const res = await response.json()
+            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+                toast.success(t("ui.settings.testSuccess"))
+                setHasTestedUserDb(true)
+            } else {
+                toast.error(res.message || t("ui.settings.testFailed"))
+                setHasTestedUserDb(false)
+            }
+        } catch {
+            toast.error(t("ui.settings.testFailed"))
+            setHasTestedUserDb(false)
+        } finally {
+            setIsTestingUserDb(false)
+        }
+    }
+
     const handleTestCloudflared = async () => {
         setIsTestingCloudflared(true)
         try {
@@ -269,18 +351,20 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
             try {
                 const headers = { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() }
 
-                const [configResponse, ngrokResponse, cloudflareResponse] = await Promise.all([
+                const [configResponse, ngrokResponse, cloudflareResponse, userDbResponse] = await Promise.all([
                     fetch(addCacheBuster(env.API_URL + "/api/admin/config"), { headers, signal: controller.signal }),
                     fetch(addCacheBuster(env.API_URL + "/api/admin/config/ngrok"), { headers, signal: controller.signal }),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), { headers, signal: controller.signal })
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), { headers, signal: controller.signal }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database"), { headers, signal: controller.signal })
                 ])
 
                 if (controller.signal.aborted) return
 
-                const [configRes, ngrokRes, cloudflareRes] = await Promise.all([
+                const [configRes, ngrokRes, cloudflareRes, userDbRes] = await Promise.all([
                     configResponse.json(),
                     ngrokResponse.json(),
                     cloudflareResponse.json(),
+                    userDbResponse.json()
                 ])
 
                 if (controller.signal.aborted) return
@@ -298,6 +382,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
 
                 if (cloudflareRes.code === 0 || (cloudflareRes.code < 100 && cloudflareRes.code > 0)) {
                     setCloudflareConfig(cloudflareRes.data)
+                }
+
+                if (userDbRes.code === 0 || (userDbRes.code < 100 && userDbRes.code > 0)) {
+                    setUserDbConfig(userDbRes.data)
+                    setHasTestedUserDb(true) // 初始加载认为是已通过测试的配置
                 }
             } catch (error) {
                 if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) {
@@ -808,6 +897,185 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                                 </Button>
                             </div>
                         </div>
+
+                        {/* 数据库增强设置卡片 */}
+                        {userDbConfig && (
+                            <div className="rounded-xl border border-border bg-card p-6 space-y-5 custom-shadow">
+                                <div className="flex flex-col gap-1">
+                                    <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
+                                        <Database className="h-5 w-5" />
+                                        {t("ui.settings.userDatabaseConfig")}
+                                    </h2>
+                                    <div 
+                                        className="text-sm text-muted-foreground leading-relaxed"
+                                        dangerouslySetInnerHTML={{ __html: t("ui.settings.userDatabaseDesc") }}
+                                    />
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <HardDrive className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.databaseType")}</span>
+                                        </div>
+                                        <Select
+                                            value={userDbConfig.type || "sqlite"}
+                                            onValueChange={(value) => updateUserDbConfig({ type: value === "sqlite" ? "" : value })}
+                                        >
+                                            <SelectTrigger className="rounded-xl">
+                                                <SelectValue placeholder={t("ui.settings.databaseType")} />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl">
+                                                <SelectItem value="sqlite">{t("ui.settings.databaseType.sqlite")}</SelectItem>
+                                                <SelectItem value="mysql">{t("ui.settings.databaseType.mysql")}</SelectItem>
+                                                <SelectItem value="postgres">{t("ui.settings.databaseType.postgres")}</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {userDbConfig.type === 'mysql' && (
+                                            <p className="text-xs text-amber-500 font-medium">
+                                                {t("ui.settings.mysqlPermissionWarning")}
+                                            </p>
+                                        )}
+                                        {userDbConfig.type === 'postgres' && (
+                                            <p className="text-xs text-amber-500 font-medium">
+                                                {t("ui.settings.postgresPermissionWarning")}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {(userDbConfig.type === 'mysql' || userDbConfig.type === 'postgres') && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-border pt-4">
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseHost")}</Label>
+                                                <Input
+                                                    value={userDbConfig.host}
+                                                    onChange={(e) => updateUserDbConfig({ host: e.target.value })}
+                                                    placeholder="127.0.0.1"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databasePort")}</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={userDbConfig.port}
+                                                    onChange={(e) => updateUserDbConfig({ port: parseInt(e.target.value) || (userDbConfig.type === 'mysql' ? 3306 : 5432) })}
+                                                    placeholder={userDbConfig.type === 'mysql' ? "3306" : "5432"}
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseUser")}</Label>
+                                                <Input
+                                                    value={userDbConfig.user}
+                                                    onChange={(e) => updateUserDbConfig({ user: e.target.value })}
+                                                    placeholder="root"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databasePassword")}</Label>
+                                                <Input
+                                                    type="password"
+                                                    value={userDbConfig.password}
+                                                    onChange={(e) => updateUserDbConfig({ password: e.target.value })}
+                                                    placeholder="••••••••"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseName")}</Label>
+                                                <Input
+                                                    value={userDbConfig.name}
+                                                    onChange={(e) => updateUserDbConfig({ name: e.target.value })}
+                                                    placeholder="fast_note"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxIdleConns")}</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={userDbConfig.maxIdleConns}
+                                                    onChange={(e) => updateUserDbConfig({ maxIdleConns: parseInt(e.target.value) || 0 })}
+                                                    placeholder="10"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxOpenConns")}</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={userDbConfig.maxOpenConns}
+                                                    onChange={(e) => updateUserDbConfig({ maxOpenConns: parseInt(e.target.value) || 0 })}
+                                                    placeholder="100"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseConnMaxLifetime")}</Label>
+                                                <Input
+                                                    value={userDbConfig.connMaxLifetime}
+                                                    onChange={(e) => updateUserDbConfig({ connMaxLifetime: e.target.value })}
+                                                    placeholder="30m"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseConnMaxIdleTime")}</Label>
+                                                <Input
+                                                    value={userDbConfig.connMaxIdleTime}
+                                                    onChange={(e) => updateUserDbConfig({ connMaxIdleTime: e.target.value })}
+                                                    placeholder="10m"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxWriteConcurrency")}</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={userDbConfig.maxWriteConcurrency}
+                                                    onChange={(e) => updateUserDbConfig({ maxWriteConcurrency: parseInt(e.target.value) || 0 })}
+                                                    placeholder="100"
+                                                    className="rounded-xl"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-wrap items-center gap-3 pt-2">
+                                        <Button
+                                            onClick={handleTestUserDb}
+                                            disabled={isTestingUserDb}
+                                            variant="outline"
+                                            className="rounded-xl"
+                                        >
+                                            {isTestingUserDb ? (
+                                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                            ) : (
+                                                <><Network className="h-4 w-4 mr-2" />{t("ui.settings.testConnection")}</>
+                                            )}
+                                        </Button>
+                                        <Button
+                                            onClick={handleSaveUserDb}
+                                            disabled={savingUserDb || !hasTestedUserDb}
+                                            className="rounded-xl"
+                                        >
+                                            {savingUserDb ? (
+                                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                            ) : (
+                                                <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
+                                            )}
+                                        </Button>
+                                        {!hasTestedUserDb && !isTestingUserDb && (
+                                            <span className="text-xs text-muted-foreground animate-pulse">
+                                                {t("ui.settings.testRequiredBeforeSave")}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                     </>
                 ) : null}
