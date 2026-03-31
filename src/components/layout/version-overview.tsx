@@ -55,7 +55,7 @@ export function VersionOverview({ showUpgrade = true, children }: { showUpgrade?
                 toast.success(t("ui.system.upgradeSuccess"))
                 setTimeout(() => {
                     window.location.reload()
-                }, 2000)
+                }, 4000)
             } else {
                 toast.error(res.message || t("ui.system.upgradeFailed"))
                 setIsUpgrading(false)
@@ -67,17 +67,18 @@ export function VersionOverview({ showUpgrade = true, children }: { showUpgrade?
     }
 
     return (
-        <div className="rounded-xl border border-border bg-card p-6 space-y-5 custom-shadow">
+        <div className="rounded-xl border border-border bg-card p-6 space-y-4 custom-shadow">
             <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
                 <Info className="h-5 w-5" />
                 {t("ui.system.versionInfo")}
             </h2>
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <GitBranch className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium">{t("ui.system.repo")}</span>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
+            <div className="flex flex-col space-y-3">
+                <div className="flex items-center justify-between gap-4 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                        <GitBranch className="h-4 w-4" />
+                        <span>{t("ui.system.repo")}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
                     <a href="https://github.com/haierkeys/fast-note-sync-service" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-37.5 sm:max-w-none">
                         {t("ui.system.githubRepo")}
                     </a>
@@ -86,43 +87,44 @@ export function VersionOverview({ showUpgrade = true, children }: { showUpgrade?
                         {t("ui.system.cnbMirror")}
                     </a>
                 </div>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <Tag className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium">{t("ui.system.currentVersion")}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    {versionLoading ? (
-                        <code className="text-sm font-mono text-muted-foreground">{t("ui.common.loading")}</code>
-                    ) : (
-                        <>
-                            {safeVersionNewLink ? (
-                                <a
-                                    href={safeVersionNewLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm font-mono text-primary hover:underline"
-                                >
-                                    {versionInfo?.version}
-                                </a>
-                            ) : (
-                                <code className="text-sm font-mono text-muted-foreground">
-                                    {versionInfo?.version || t("ui.common.unknown")}
-                                </code>
-                            )}
-                        </>
-                    )}
-                </div>
-            </div>
-            <div className="border-t border-border" />
-            <div className="space-y-3">
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                        <RefreshCw className={`h-5 w-5 text-muted-foreground ${isChecking ? 'animate-spin' : ''}`} />
-                        <span className="text-sm font-medium">{t("ui.system.checkUpdate")}</span>
+                <div className="flex items-center justify-between gap-4 text-sm">
+                    <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                        <Tag className="h-4 w-4" />
+                        <span>{t("ui.system.currentVersion")}</span>
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleCheckUpdate} disabled={isChecking || versionLoading || !versionInfo?.version} className="rounded-xl">
+                    <div className="flex items-center gap-2">
+                        {versionLoading ? (
+                            <code className="font-mono text-muted-foreground">{t("ui.common.loading")}</code>
+                        ) : (
+                            <>
+                                {safeVersionNewLink ? (
+                                    <a
+                                        href={safeVersionNewLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-mono text-primary hover:underline"
+                                    >
+                                        {versionInfo?.version}
+                                    </a>
+                                ) : (
+                                    <code className="font-mono text-muted-foreground">
+                                        {versionInfo?.version || t("ui.common.unknown")}
+                                    </code>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            </div>
+            <div className="border-t border-border/50" />
+            <div className="space-y-3 text-sm">
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 text-muted-foreground font-medium">
+                        <RefreshCw className={`h-4 w-4 ${isChecking ? 'animate-spin' : ''}`} />
+                        <span>{t("ui.system.checkUpdate")}</span>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleCheckUpdate} disabled={isChecking || versionLoading || !versionInfo?.version} className="rounded-xl px-3">
                         {isChecking ? t("ui.system.checking") : t("ui.system.checkNow")}
                     </Button>
                 </div>

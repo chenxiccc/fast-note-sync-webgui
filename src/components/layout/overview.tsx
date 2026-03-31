@@ -56,7 +56,7 @@ export function Overview({ refreshKey, children }: { refreshKey?: number, childr
                 </Button>
             </div>
 
-            <div className="space-y-8">
+            <div className="space-y-5">
                 {/* Service Runtime Info */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-bold text-primary">
@@ -106,16 +106,13 @@ export function Overview({ refreshKey, children }: { refreshKey?: number, childr
                     </div>
                 </div>
 
-                <div className="border-t border-border/50" />
-
                 {/* System Hardware Info */}
-                <div className="space-y-6">
+                <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-bold text-primary">
                         <Cpu className="h-4 w-4" />
                         {t("ui.system.hostInfo")}
                     </div>
 
-                    {/* Host Details */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 text-xs">
                         <div className="text-muted-foreground">{t("ui.system.systemTime")}</div>
                         <div className="sm:text-right font-medium">{(() => {
@@ -127,32 +124,23 @@ export function Overview({ refreshKey, children }: { refreshKey?: number, childr
                             return `${formatted} (${offset})`;
                         })()}</div>
 
-                        <div className="text-muted-foreground">{t("ui.system.os")} / {t("ui.system.kernelVersion")}</div>
-                        <div className="sm:text-right font-medium text-[10px] sm:text-xs break-all" title={`${systemInfo.host.osPretty} (${systemInfo.host.kernelVersion})`}>
+                        <div className="text-muted-foreground">{t("ui.system.os")} / {t("ui.system.kernelVersion")} / {t("ui.system.modelName")}</div>
+                        <div className="sm:text-right font-medium text-[10px] sm:text-xs break-all" title={`${systemInfo.host.osPretty} / ${systemInfo.host.kernelVersion} / ${systemInfo.cpu.modelName}`}>
                             {systemInfo.host.osPretty}
                             <span className="text-muted-foreground mx-1.5 opacity-50">|</span>
                             <span className="font-mono">{systemInfo.host.kernelVersion}</span>
+                            <span className="text-muted-foreground mx-1.5 opacity-50">|</span>
+                            <span>{systemInfo.cpu.modelName}</span>
                         </div>
-                    </div>
 
-                    {/* CPU Details */}
-                    <div className="space-y-2">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-1.5 text-xs">
-                            <div className="text-muted-foreground">{t("ui.system.modelName")}</div>
-                            <div className="font-medium truncate sm:text-right" title={systemInfo.cpu.modelName}>{systemInfo.cpu.modelName}</div>
-
-                            <div className="text-muted-foreground">{t("ui.system.physicalCores")} / {t("ui.system.cpuLoad")}</div>
-                            <div className="sm:text-right font-medium">
-                                {systemInfo.cpu.logicalCores}/{systemInfo.cpu.physicalCores}
-                                <span className="text-muted-foreground mx-1.5 opacity-50">|</span>
-                                {systemInfo.cpu.loadAvg.load1.toFixed(2)} {systemInfo.cpu.loadAvg.load5.toFixed(2)} {systemInfo.cpu.loadAvg.load15.toFixed(2)}
-                            </div>
+                        <div className="text-muted-foreground">{t("ui.system.physicalCores")} / {t("ui.system.cpuLoad")}</div>
+                        <div className="sm:text-right font-medium">
+                            {systemInfo.cpu.logicalCores}/{systemInfo.cpu.physicalCores}
+                            <span className="text-muted-foreground mx-1.5 opacity-50">|</span>
+                            {systemInfo.cpu.loadAvg.load1.toFixed(2)} {systemInfo.cpu.loadAvg.load5.toFixed(2)} {systemInfo.cpu.loadAvg.load15.toFixed(2)}
                         </div>
-                    </div>
 
-                    {/* Memory Details */}
-                    <div className="space-y-2.5">
-                        <div className="space-y-2">
+                        <div className="col-span-2 space-y-2 mt-1">
                             <div className="flex flex-wrap justify-between text-xs">
                                 <span className="text-muted-foreground">{t("ui.system.memoryUsage")} / {t("ui.system.usedMemory")} / {t("ui.system.totalMemory")}</span>
                                 <span className="font-medium">
@@ -161,7 +149,7 @@ export function Overview({ refreshKey, children }: { refreshKey?: number, childr
                                     {formatFileSize(systemInfo.memory.used)} / {formatFileSize(systemInfo.memory.total)}
                                 </span>
                             </div>
-                            <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden shadow-inner">
+                            <div className="h-1.5 w-full bg-secondary/50 rounded-full overflow-hidden">
                                 <div
                                     className={`h-full transition-all duration-700 ease-out fill-mode-forwards ${systemInfo.memory.usedPercent > 85 ? 'bg-destructive' : systemInfo.memory.usedPercent > 65 ? 'bg-orange-500' : 'bg-primary'}`}
                                     style={{ width: `${systemInfo.memory.usedPercent}%` }}

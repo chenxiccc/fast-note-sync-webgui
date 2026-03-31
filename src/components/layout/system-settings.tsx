@@ -1,8 +1,9 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog";
-import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, Settings, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe, Database, Network } from "lucide-react";
+import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, Settings, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe, Database, Network, ChevronLeft, ChevronRight, SlidersHorizontal, BookOpen, Share2, Zap, Router } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/common/Toast";
 import { Button } from "@/components/ui/button";
@@ -408,6 +409,24 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [onBack, t, token, isDashboard])
 
+    const scrollContainerRef = useRef<HTMLDivElement>(null)
+    const [showLeftScroll, setShowLeftScroll] = useState(false)
+    const [showRightScroll, setShowRightScroll] = useState(false)
+
+    const handleScroll = useCallback(() => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current
+            setShowLeftScroll(scrollLeft > 0)
+            setShowRightScroll(scrollLeft + clientWidth < scrollWidth - 1)
+        }
+    }, [])
+
+    useEffect(() => {
+        handleScroll()
+        window.addEventListener('resize', handleScroll)
+        return () => window.removeEventListener('resize', handleScroll)
+    }, [handleScroll])
+
     if (loading) return <div className="p-8 text-center">{t("ui.common.loading")}</div>
     if (!config && !isDashboard) return <div className="p-8 text-center text-destructive">{t("ui.common.error")}</div>
 
@@ -421,10 +440,6 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 {!isDashboard && (
                     <Overview refreshKey={overviewRefreshKey}>
                         <div className="space-y-3">
-                            <div className="flex items-center gap-3">
-                                <Settings className="h-5 w-5 text-muted-foreground" />
-                                <span className="text-sm font-medium">{t("ui.common.actions")}</span>
-                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <AlertDialog open={showRestartConfirm} onOpenChange={setShowRestartConfirm}>
                                     <Button
@@ -540,545 +555,462 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                         </div>
                     </div>
                 )}
-
-                {/* 界面设置卡片 */}
-                {config && !isDashboard && (
-                    <>
-                        <div className="rounded-xl border border-border bg-card p-6 space-y-5 custom-shadow">
-                            <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
-                                <Type className="h-5 w-5" />
-                                {t("ui.settings.fontConfig")}
-                            </h2>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Globe className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.pullSource")}</span>
-                                </div>
-                                <Select
-                                    value={config.pullSource || "auto"}
-                                    onValueChange={(value) => updateConfig({ pullSource: value })}
-                                >
-                                    <SelectTrigger className="rounded-xl">
-                                        <SelectValue placeholder={t("ui.settings.pullSource")} />
-                                    </SelectTrigger>
-                                    <SelectContent className="rounded-xl">
-                                        <SelectItem value="auto">{t("ui.settings.pullSource.auto")}</SelectItem>
-                                        <SelectItem value="github">{t("ui.settings.pullSource.github")}</SelectItem>
-                                        <SelectItem value="cnb">{t("ui.settings.pullSource.cnb")}</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-muted-foreground">{t("ui.settings.pullSourceDesc")}</p>
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Type className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.fontSet")}</span>
-                                </div>
-                                <Input value={config.fontSet} onChange={(e) => updateConfig({ fontSet: e.target.value })} placeholder="e.g. /static/fonts/font.css" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.fontSetDesc") }} />
-                            </div>
-
-                            <div className="pt-2">
-                                <Button onClick={handleSaveConfig} disabled={saving} className="rounded-xl">
-                                    {saving ? (
-                                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
-                                    ) : (
-                                        <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* 中继网关卡片 */}
-                        <div className="rounded-xl border border-border bg-card p-6 space-y-5 custom-shadow">
-                            <div className="flex flex-col gap-1">
-                                <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
-                                    <HardDrive className="h-5 w-5" />
-                                    {t("ui.settings.tunnelGatewayConfig")}
-                                </h2>
-                                <p className="text-sm text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.tunnelGatewayDesc") }} />
-                            </div>
-
-                            {/* Ngrok 配置 */}
-                            {ngrokConfig && (
-                                <div className="space-y-4">
-                                    <div className="space-y-1">
-                                        <h3 className="text-md font-semibold text-primary">Ngrok</h3>
-                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.ngrokDesc") }} />
-                                    </div>
-                                    <div className="space-y-3 pl-2">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="ngrokEnabled" checked={ngrokConfig.enabled} onCheckedChange={(checked) => updateNgrokConfig({ enabled: !!checked })} />
-                                                <Label htmlFor="ngrokEnabled" className="text-sm cursor-pointer">{t("ui.common.isEnabled")}</Label>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <Label className="text-sm font-medium">Token</Label>
-                                            <Input value={ngrokConfig.authToken} onChange={(e) => updateNgrokConfig({ authToken: e.target.value })} placeholder="e.g. 2Rk9..." className="rounded-xl" />
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <Label className="text-sm font-medium">{t("ui.settings.customDomain")}</Label>
-                                            <Input value={ngrokConfig.domain} onChange={(e) => updateNgrokConfig({ domain: e.target.value })} placeholder="e.g. static.yourdomain.com" className="rounded-xl" />
-                                            <p className="text-xs text-muted-foreground pt-1">
-                                                {t("ui.settings.customDomainDesc")}
-                                            </p>
-                                        </div>
-
-                                        <div className="pt-2">
-                                            <Button onClick={handleSaveNgrok} disabled={savingNgrok} className="rounded-xl">
-                                                {savingNgrok ? (
-                                                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
-                                                ) : (
-                                                    <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveNgrok")}</>
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {ngrokConfig && cloudflareConfig && <div className="border-t border-border" />}
-
-                            {/* Cloudflare 配置 */}
-                            {cloudflareConfig && (
-                                <div className="space-y-4">
-                                    <div className="space-y-1">
-                                        <h3 className="text-md font-semibold text-primary">Cloudflare Tunnel</h3>
-                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.cloudflareDesc") }} />
-                                    </div>
-                                    <div className="space-y-3 pl-2">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="cfEnabled" checked={cloudflareConfig.enabled} onCheckedChange={(checked) => updateCloudflareConfig({ enabled: !!checked })} />
-                                                <Label htmlFor="cfEnabled" className="text-sm cursor-pointer">{t("ui.common.isEnabled")}</Label>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <Label className="text-sm font-medium">Token</Label>
-                                            <Input value={cloudflareConfig.token} onChange={(e) => updateCloudflareConfig({ token: e.target.value })} placeholder="e.g. eyJh..." className="rounded-xl" />
-                                        </div>
-
-                                        <div className="flex flex-col gap-1 pt-1">
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox id="cfLogEnabled" checked={cloudflareConfig.logEnabled} onCheckedChange={(checked) => updateCloudflareConfig({ logEnabled: !!checked })} />
-                                                <Label htmlFor="cfLogEnabled" className="text-sm cursor-pointer">{t("ui.settings.enableLog")}</Label>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground pl-6">
-                                                {t("ui.settings.cloudflareLogDesc")}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex items-center gap-3 pt-2">
-                                            <Button onClick={handleSaveCloudflare} disabled={savingCloudflare} className="rounded-xl">
-                                                {savingCloudflare ? (
-                                                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
-                                                ) : (
-                                                    <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveCloudflare")}</>
-                                                )}
-                                            </Button>
-                                            <Button onClick={handleTestCloudflared} disabled={isTestingCloudflared} className="rounded-xl" variant="outline">
-                                                {isTestingCloudflared ? (
-                                                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.common.downloading")}</>
-                                                ) : (
-                                                    <><Download className="h-4 w-4 mr-2" />{t("ui.settings.downloadCloudflared")}</>
-                                                )}
-                                            </Button>
-
-                                            <AlertDialog open={showDownloadError} onOpenChange={setShowDownloadError}>
-                                                <AlertDialogContent className="rounded-2xl max-w-2xl w-[90vw]">
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle className="text-destructive flex items-center gap-2">
-                                                            <Shield className="h-5 w-5" />
-                                                            {t("ui.settings.downloadFailed")}
-                                                        </AlertDialogTitle>
-                                                        <AlertDialogDescription className="whitespace-pre-wrap break-all mt-2 font-mono text-xs bg-muted/50 p-4 rounded-xl border border-border/50 max-h-60 overflow-y-auto">
-                                                            {downloadErrorMessage}
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel className="rounded-xl w-full sm:w-auto">{t("ui.common.confirm")}</AlertDialogCancel>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                )}
             </div>
 
-            {/* 右列 */}
+            {/* 右列：Tabs 设置区域 */}
             <div className="flex flex-col gap-4">
                 {isDashboard ? (
-                    /* 概况页右侧支持列表 Box */
                     <div className="rounded-xl border border-border bg-card p-4 custom-shadow">
                         <SupportList />
                     </div>
                 ) : config ? (
-                    <>
-                        {/* 安全设置卡片 */}
-                        <div className="rounded-xl border border-border bg-card p-6 space-y-5 custom-shadow">
-                            <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
-                                <Lock className="h-5 w-5" />
-                                {t("ui.settings.securityConfig")}
-                            </h2>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Lock className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.authTokenKey")}</span>
-                                </div>
-                                <Input value={config.authTokenKey} onChange={(e) => updateConfig({ authTokenKey: e.target.value })} placeholder="e.g. token" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.authTokenKeyDesc") }} />
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Clock className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.tokenExpiry")}</span>
-                                </div>
-                                <Input value={config.tokenExpiry} onChange={(e) => updateConfig({ tokenExpiry: e.target.value })} placeholder="e.g. 365d, 24h, 30m" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.tokenExpiryDesc") }} />
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <UserPlus className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.registerIsEnable")}</span>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <Checkbox id="registerIsEnable" checked={config.registerIsEnable} onCheckedChange={(checked) => updateConfig({ registerIsEnable: !!checked })} />
-                                    <Label htmlFor="registerIsEnable" className="text-sm">{config.registerIsEnable ? t("ui.common.isEnabled") : t("ui.common.close")}</Label>
-                                </div>
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.registerIsEnableDesc") }} />
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Shield className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.adminUid")}</span>
-                                </div>
-                                <Input type="number" value={config.adminUid} onChange={(e) => updateConfig({ adminUid: parseInt(e.target.value) || 0 })} placeholder="e.g. 1" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.adminUidDesc") }} />
-                            </div>
-
-                            <div className="pt-2">
-                                <Button onClick={handleSaveConfig} disabled={saving} className="rounded-xl">
-                                    {saving ? (
-                                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
-                                    ) : (
-                                        <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* 分享令牌配置卡片群 */}
-                        <div className="rounded-xl border border-border bg-card p-6 space-y-5 custom-shadow">
-                            <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
-                                <Shield className="h-5 w-5" />
-                                {t("ui.settings.systemConfig")}
-                            </h2>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Shield className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.shareTokenKey")}</span>
-                                </div>
-                                <Input value={config.shareTokenKey} onChange={(e) => updateConfig({ shareTokenKey: e.target.value })} placeholder="e.g. fns" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.shareTokenKeyDesc") }} />
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Clock className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.shareTokenExpiry")}</span>
-                                </div>
-                                <Input value={config.shareTokenExpiry} onChange={(e) => updateConfig({ shareTokenExpiry: e.target.value })} placeholder="e.g. 30d, 24h, 30m" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.shareTokenExpiryDesc") }} />
-                            </div>
-
-                            <div className="pt-2">
-                                <Button onClick={handleSaveConfig} disabled={saving} className="rounded-xl">
-                                    {saving ? (
-                                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
-                                    ) : (
-                                        <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* 笔记关联配置卡片 */}
-                        <div className="rounded-xl border border-border bg-card p-6 space-y-5 custom-shadow">
-                            <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
-                                <GitBranch className="h-5 w-5" />
-                                {t("ui.settings.noteRelatedConfig")}
-                            </h2>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <HardDrive className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.fileChunkSize")}</span>
-                                </div>
-                                <Input value={config.fileChunkSize} onChange={(e) => updateConfig({ fileChunkSize: e.target.value })} placeholder="e.g. 1MB, 512KB" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.fileChunkSizeDesc") }} />
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Trash2 className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.softDeleteRetentionTime")}</span>
-                                </div>
-                                <Input value={config.softDeleteRetentionTime} onChange={(e) => updateConfig({ softDeleteRetentionTime: e.target.value })} placeholder="e.g. 30d, 24h" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.softDeleteRetentionTimeDesc") }} />
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Clock className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.uploadSessionTimeout")}</span>
-                                </div>
-                                <Input value={config.uploadSessionTimeout} onChange={(e) => updateConfig({ uploadSessionTimeout: e.target.value })} placeholder="e.g. 1h, 30m" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.uploadSessionTimeoutDesc") }} />
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <GitBranch className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.historyKeepVersions")}</span>
-                                </div>
-                                <Input type="number" min="100" value={config.historyKeepVersions} onChange={(e) => updateConfig({ historyKeepVersions: parseInt(e.target.value) || 100 })} placeholder="e.g. 100" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.historyKeepVersionsDesc") }} />
-                            </div>
-
-                            <div className="border-t border-border" />
-
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-3">
-                                    <Clock className="h-5 w-5 text-muted-foreground" />
-                                    <span className="text-sm font-medium">{t("ui.settings.historySaveDelay")}</span>
-                                </div>
-                                <Input value={config.historySaveDelay} onChange={(e) => updateConfig({ historySaveDelay: e.target.value })} placeholder="e.g. 10s, 1m" className="rounded-xl" />
-                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.historySaveDelayDesc") }} />
-                            </div>
-
-                            <div className="pt-2">
-                                <Button onClick={handleSaveConfig} disabled={saving} className="rounded-xl">
-                                    {saving ? (
-                                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
-                                    ) : (
-                                        <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* 数据库增强设置卡片 */}
-                        {userDbConfig && (
-                            <div className="rounded-xl border border-border bg-card p-6 space-y-5 custom-shadow">
-                                <div className="flex flex-col gap-1">
-                                    <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
-                                        <Database className="h-5 w-5" />
+                    <div className="rounded-xl border border-border bg-card custom-shadow overflow-hidden flex flex-col">
+                        <Tabs defaultValue="font" className="w-full">
+                            <div className="bg-muted/5 relative overflow-hidden group">
+                                {showLeftScroll && (
+                                    <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent z-20 pointer-events-none flex items-center justify-start">
+                                        <ChevronLeft className="h-4 w-4 text-muted-foreground ml-1" />
+                                    </div>
+                                )}
+                                <TabsList 
+                                    ref={scrollContainerRef} 
+                                    onScroll={handleScroll}
+                                    className="w-full h-auto flex flex-nowrap justify-start overflow-x-auto bg-transparent p-0 gap-0 no-scrollbar relative"
+                                >
+                                    <TabsTrigger value="font" className="flex-none px-6 h-12 rounded-none border-y-transparent border-l-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-r-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                        <SlidersHorizontal className="h-4 w-4 mr-2" />
+                                        {t("ui.settings.fontConfig")}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="notes" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-x-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                        <BookOpen className="h-4 w-4 mr-2" />
+                                        {t("ui.settings.noteRelatedConfig")}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="security" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-x-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                        <Shield className="h-4 w-4 mr-2" />
+                                        {t("ui.settings.securityConfig")}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="share" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-x-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                        <Share2 className="h-4 w-4 mr-2" />
+                                        {t("ui.settings.systemConfig")}
+                                    </TabsTrigger>
+                                    <TabsTrigger value="database" className="flex-none px-6 h-12 rounded-none border-y-transparent border-x-transparent border-r border-r-border/30 border-b border-border bg-muted/60 data-[state=active]:border-x-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                        <Database className="h-4 w-4 mr-2" />
                                         {t("ui.settings.userDatabaseConfig")}
-                                    </h2>
-                                    <div 
-                                        className="text-sm text-muted-foreground leading-relaxed"
-                                        dangerouslySetInnerHTML={{ __html: t("ui.settings.userDatabaseDesc") }}
-                                    />
-                                </div>
+                                    </TabsTrigger>
+                                    <TabsTrigger value="tunnel" className="flex-none px-6 h-12 rounded-none border-y-transparent border-r-transparent border-l-transparent border-b border-border bg-muted/60 data-[state=active]:border-l-border data-[state=active]:border-b-transparent data-[state=active]:bg-card data-[state=active]:relative data-[state=active]:z-10 data-[state=active]:shadow-[-4px_0_12px_-4px_rgba(0,0,0,0.15),4px_0_12px_-4px_rgba(0,0,0,0.15)] transition-all font-medium text-muted-foreground data-[state=active]:text-primary">
+                                        <Router className="h-4 w-4 mr-2" />
+                                        {t("ui.settings.tunnelGatewayConfig")}
+                                    </TabsTrigger>
+                                </TabsList>
+                                {showRightScroll && (
+                                    <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-20 pointer-events-none flex items-center justify-end">
+                                        <ChevronRight className="h-4 w-4 text-muted-foreground mr-1" />
+                                    </div>
+                                )}
+                            </div>
 
-                                <div className="space-y-4">
+                            <div className="flex-1">
+                                {/* 常规设置 */}
+                                <TabsContent value="font" className="p-6 space-y-5 mt-0 outline-none">
+                                    <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
+                                        <SlidersHorizontal className="h-5 w-5" />
+                                        {t("ui.settings.fontConfig")}
+                                    </h2>
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3">
-                                            <HardDrive className="h-5 w-5 text-muted-foreground" />
-                                            <span className="text-sm font-medium">{t("ui.settings.databaseType")}</span>
+                                            <Globe className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.pullSource")}</span>
                                         </div>
                                         <Select
-                                            value={userDbConfig.type || "sqlite"}
-                                            onValueChange={(value) => updateUserDbConfig({ type: value === "sqlite" ? "" : value })}
+                                            value={config.pullSource || "auto"}
+                                            onValueChange={(value) => updateConfig({ pullSource: value })}
                                         >
                                             <SelectTrigger className="rounded-xl">
-                                                <SelectValue placeholder={t("ui.settings.databaseType")} />
+                                                <SelectValue placeholder={t("ui.settings.pullSource")} />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-xl">
-                                                <SelectItem value="sqlite">{t("ui.settings.databaseType.sqlite")}</SelectItem>
-                                                <SelectItem value="mysql">{t("ui.settings.databaseType.mysql")}</SelectItem>
-                                                <SelectItem value="postgres">{t("ui.settings.databaseType.postgres")}</SelectItem>
+                                                <SelectItem value="auto">{t("ui.settings.pullSource.auto")}</SelectItem>
+                                                <SelectItem value="github">{t("ui.settings.pullSource.github")}</SelectItem>
+                                                <SelectItem value="cnb">{t("ui.settings.pullSource.cnb")}</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        {userDbConfig.type === 'mysql' && (
-                                            <p className="text-xs text-amber-500 font-medium">
-                                                {t("ui.settings.mysqlPermissionWarning")}
-                                            </p>
-                                        )}
-                                        {userDbConfig.type === 'postgres' && (
-                                            <p className="text-xs text-amber-500 font-medium">
-                                                {t("ui.settings.postgresPermissionWarning")}
-                                            </p>
-                                        )}
+                                        <p className="text-xs text-muted-foreground">{t("ui.settings.pullSourceDesc")}</p>
                                     </div>
-
-                                    {(userDbConfig.type === 'mysql' || userDbConfig.type === 'postgres') && (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-border pt-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseHost")}</Label>
-                                                <Input
-                                                    value={userDbConfig.host}
-                                                    onChange={(e) => updateUserDbConfig({ host: e.target.value })}
-                                                    placeholder="127.0.0.1"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databasePort")}</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={userDbConfig.port}
-                                                    onChange={(e) => updateUserDbConfig({ port: parseInt(e.target.value) || (userDbConfig.type === 'mysql' ? 3306 : 5432) })}
-                                                    placeholder={userDbConfig.type === 'mysql' ? "3306" : "5432"}
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseUser")}</Label>
-                                                <Input
-                                                    value={userDbConfig.user}
-                                                    onChange={(e) => updateUserDbConfig({ user: e.target.value })}
-                                                    placeholder="root"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databasePassword")}</Label>
-                                                <Input
-                                                    type="password"
-                                                    value={userDbConfig.password}
-                                                    onChange={(e) => updateUserDbConfig({ password: e.target.value })}
-                                                    placeholder="••••••••"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseName")}</Label>
-                                                <Input
-                                                    value={userDbConfig.name}
-                                                    onChange={(e) => updateUserDbConfig({ name: e.target.value })}
-                                                    placeholder="fast_note"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxIdleConns")}</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={userDbConfig.maxIdleConns}
-                                                    onChange={(e) => updateUserDbConfig({ maxIdleConns: parseInt(e.target.value) || 0 })}
-                                                    placeholder="10"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxOpenConns")}</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={userDbConfig.maxOpenConns}
-                                                    onChange={(e) => updateUserDbConfig({ maxOpenConns: parseInt(e.target.value) || 0 })}
-                                                    placeholder="100"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseConnMaxLifetime")}</Label>
-                                                <Input
-                                                    value={userDbConfig.connMaxLifetime}
-                                                    onChange={(e) => updateUserDbConfig({ connMaxLifetime: e.target.value })}
-                                                    placeholder="30m"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseConnMaxIdleTime")}</Label>
-                                                <Input
-                                                    value={userDbConfig.connMaxIdleTime}
-                                                    onChange={(e) => updateUserDbConfig({ connMaxIdleTime: e.target.value })}
-                                                    placeholder="10m"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxWriteConcurrency")}</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={userDbConfig.maxWriteConcurrency}
-                                                    onChange={(e) => updateUserDbConfig({ maxWriteConcurrency: parseInt(e.target.value) || 0 })}
-                                                    placeholder="100"
-                                                    className="rounded-xl"
-                                                />
-                                            </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Type className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.fontSet")}</span>
                                         </div>
-                                    )}
-
-                                    <div className="flex flex-wrap items-center gap-3 pt-2">
-                                        <Button
-                                            onClick={handleTestUserDb}
-                                            disabled={isTestingUserDb}
-                                            variant="outline"
-                                            className="rounded-xl"
-                                        >
-                                            {isTestingUserDb ? (
-                                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
-                                            ) : (
-                                                <><Network className="h-4 w-4 mr-2" />{t("ui.settings.testConnection")}</>
-                                            )}
-                                        </Button>
-                                        <Button
-                                            onClick={handleSaveUserDb}
-                                            disabled={savingUserDb || !hasTestedUserDb}
-                                            className="rounded-xl"
-                                        >
-                                            {savingUserDb ? (
+                                        <Input value={config.fontSet} onChange={(e) => updateConfig({ fontSet: e.target.value })} placeholder="e.g. /static/fonts/font.css" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.fontSetDesc") }} />
+                                    </div>
+                                    <div className="pt-2">
+                                        <Button onClick={handleSaveConfig} disabled={saving} className="rounded-xl">
+                                            {saving ? (
                                                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
                                             ) : (
                                                 <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
                                             )}
                                         </Button>
-                                        {!hasTestedUserDb && !isTestingUserDb && (
-                                            <span className="text-xs text-muted-foreground animate-pulse">
-                                                {t("ui.settings.testRequiredBeforeSave")}
-                                            </span>
-                                        )}
                                     </div>
-                                </div>
-                            </div>
-                        )}
+                                </TabsContent>
 
-                    </>
+                                <TabsContent value="notes" className="p-6 space-y-5 mt-0 outline-none">
+                                    <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
+                                        <BookOpen className="h-5 w-5" />
+                                        {t("ui.settings.noteRelatedConfig")}
+                                    </h2>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <HardDrive className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.fileChunkSize")}</span>
+                                        </div>
+                                        <Input value={config.fileChunkSize} onChange={(e) => updateConfig({ fileChunkSize: e.target.value })} placeholder="e.g. 1MB, 512KB" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.fileChunkSizeDesc") }} />
+                                    </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Trash2 className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.softDeleteRetentionTime")}</span>
+                                        </div>
+                                        <Input value={config.softDeleteRetentionTime} onChange={(e) => updateConfig({ softDeleteRetentionTime: e.target.value })} placeholder="e.g. 30d, 24h" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.softDeleteRetentionTimeDesc") }} />
+                                    </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.uploadSessionTimeout")}</span>
+                                        </div>
+                                        <Input value={config.uploadSessionTimeout} onChange={(e) => updateConfig({ uploadSessionTimeout: e.target.value })} placeholder="e.g. 1h, 30m" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.uploadSessionTimeoutDesc") }} />
+                                    </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <GitBranch className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.historyKeepVersions")}</span>
+                                        </div>
+                                        <Input type="number" min="100" value={config.historyKeepVersions} onChange={(e) => updateConfig({ historyKeepVersions: parseInt(e.target.value) || 100 })} placeholder="e.g. 100" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.historyKeepVersionsDesc") }} />
+                                    </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.historySaveDelay")}</span>
+                                        </div>
+                                        <Input value={config.historySaveDelay} onChange={(e) => updateConfig({ historySaveDelay: e.target.value })} placeholder="e.g. 10s, 1m" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.historySaveDelayDesc") }} />
+                                    </div>
+                                    <div className="pt-2">
+                                        <Button onClick={handleSaveConfig} disabled={saving} className="rounded-xl">
+                                            {saving ? (
+                                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                            ) : (
+                                                <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="security" className="p-6 space-y-5 mt-0 outline-none">
+                                    <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
+                                        <Lock className="h-5 w-5" />
+                                        {t("ui.settings.securityConfig")}
+                                    </h2>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Lock className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.authTokenKey")}</span>
+                                        </div>
+                                        <Input value={config.authTokenKey} onChange={(e) => updateConfig({ authTokenKey: e.target.value })} placeholder="e.g. token" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.authTokenKeyDesc") }} />
+                                    </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.tokenExpiry")}</span>
+                                        </div>
+                                        <Input value={config.tokenExpiry} onChange={(e) => updateConfig({ tokenExpiry: e.target.value })} placeholder="e.g. 365d, 24h, 30m" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.tokenExpiryDesc") }} />
+                                    </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <UserPlus className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.registerIsEnable")}</span>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox id="registerIsEnable" checked={config.registerIsEnable} onCheckedChange={(checked) => updateConfig({ registerIsEnable: !!checked })} />
+                                            <Label htmlFor="registerIsEnable" className="text-sm">{config.registerIsEnable ? t("ui.common.isEnabled") : t("ui.common.close")}</Label>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.registerIsEnableDesc") }} />
+                                    </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Shield className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.adminUid")}</span>
+                                        </div>
+                                        <Input type="number" value={config.adminUid} onChange={(e) => updateConfig({ adminUid: parseInt(e.target.value) || 0 })} placeholder="e.g. 1" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.adminUidDesc") }} />
+                                    </div>
+                                    <div className="pt-2">
+                                        <Button onClick={handleSaveConfig} disabled={saving} className="rounded-xl">
+                                            {saving ? (
+                                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                            ) : (
+                                                <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="share" className="p-6 space-y-5 mt-0 outline-none">
+                                    <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
+                                        <Share2 className="h-5 w-5" />
+                                        {t("ui.settings.systemConfig")}
+                                    </h2>
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Share2 className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.shareTokenKey")}</span>
+                                        </div>
+                                        <Input value={config.shareTokenKey} onChange={(e) => updateConfig({ shareTokenKey: e.target.value })} placeholder="e.g. fns" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.shareTokenKeyDesc") }} />
+                                    </div>
+                                    <div className="border-t border-border" />
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <Clock className="h-5 w-5 text-muted-foreground" />
+                                            <span className="text-sm font-medium">{t("ui.settings.shareTokenExpiry")}</span>
+                                        </div>
+                                        <Input value={config.shareTokenExpiry} onChange={(e) => updateConfig({ shareTokenExpiry: e.target.value })} placeholder="e.g. 30d, 24h, 30m" className="rounded-xl" />
+                                        <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.shareTokenExpiryDesc") }} />
+                                    </div>
+                                    <div className="pt-2">
+                                        <Button onClick={handleSaveConfig} disabled={saving} className="rounded-xl">
+                                            {saving ? (
+                                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                            ) : (
+                                                <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="database" className="p-6 space-y-5 mt-0 outline-none">
+                                    {userDbConfig && (
+                                        <div className="space-y-5">
+                                            <div className="flex flex-col gap-1">
+                                                <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
+                                                    <Database className="h-5 w-5" />
+                                                    {t("ui.settings.userDatabaseConfig")}
+                                                </h2>
+                                                <div className="text-sm text-muted-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: t("ui.settings.userDatabaseDesc") }} />
+                                            </div>
+                                            <div className="space-y-4">
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <HardDrive className="h-5 w-5 text-muted-foreground" />
+                                                        <span className="text-sm font-medium">{t("ui.settings.databaseType")}</span>
+                                                    </div>
+                                                    <Select
+                                                        value={userDbConfig.type || "sqlite"}
+                                                        onValueChange={(value) => updateUserDbConfig({ type: value === "sqlite" ? "" : value })}
+                                                    >
+                                                        <SelectTrigger className="rounded-xl">
+                                                            <SelectValue placeholder={t("ui.settings.databaseType")} />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="rounded-xl">
+                                                            <SelectItem value="sqlite">{t("ui.settings.databaseType.sqlite")}</SelectItem>
+                                                            <SelectItem value="mysql">{t("ui.settings.databaseType.mysql")}</SelectItem>
+                                                            <SelectItem value="postgres">{t("ui.settings.databaseType.postgres")}</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {userDbConfig.type === 'mysql' && <p className="text-xs text-amber-500 font-medium">{t("ui.settings.mysqlPermissionWarning")}</p>}
+                                                    {userDbConfig.type === 'postgres' && <p className="text-xs text-amber-500 font-medium">{t("ui.settings.postgresPermissionWarning")}</p>}
+                                                </div>
+                                                {(userDbConfig.type === 'mysql' || userDbConfig.type === 'postgres') && (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-border pt-4">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseHost")}</Label>
+                                                            <Input value={userDbConfig.host} onChange={(e) => updateUserDbConfig({ host: e.target.value })} placeholder="127.0.0.1" className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databasePort")}</Label>
+                                                            <Input type="number" value={userDbConfig.port} onChange={(e) => updateUserDbConfig({ port: parseInt(e.target.value) || (userDbConfig.type === 'mysql' ? 3306 : 5432) })} placeholder={userDbConfig.type === 'mysql' ? "3306" : "5432"} className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseUser")}</Label>
+                                                            <Input value={userDbConfig.user} onChange={(e) => updateUserDbConfig({ user: e.target.value })} placeholder="root" className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databasePassword")}</Label>
+                                                            <Input type="password" value={userDbConfig.password} onChange={(e) => updateUserDbConfig({ password: e.target.value })} placeholder="••••••••" className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseName")}</Label>
+                                                            <Input value={userDbConfig.name} onChange={(e) => updateUserDbConfig({ name: e.target.value })} placeholder="fast_note" className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxIdleConns")}</Label>
+                                                            <Input type="number" value={userDbConfig.maxIdleConns} onChange={(e) => updateUserDbConfig({ maxIdleConns: parseInt(e.target.value) || 0 })} placeholder="10" className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxOpenConns")}</Label>
+                                                            <Input type="number" value={userDbConfig.maxOpenConns} onChange={(e) => updateUserDbConfig({ maxOpenConns: parseInt(e.target.value) || 0 })} placeholder="100" className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseConnMaxLifetime")}</Label>
+                                                            <Input value={userDbConfig.connMaxLifetime} onChange={(e) => updateUserDbConfig({ connMaxLifetime: e.target.value })} placeholder="30m" className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseConnMaxIdleTime")}</Label>
+                                                            <Input value={userDbConfig.connMaxIdleTime} onChange={(e) => updateUserDbConfig({ connMaxIdleTime: e.target.value })} placeholder="10m" className="rounded-xl" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxWriteConcurrency")}</Label>
+                                                            <Input type="number" value={userDbConfig.maxWriteConcurrency} onChange={(e) => updateUserDbConfig({ maxWriteConcurrency: parseInt(e.target.value) || 0 })} placeholder="100" className="rounded-xl" />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <div className="flex flex-wrap items-center gap-3 pt-2">
+                                                    <Button onClick={handleTestUserDb} disabled={isTestingUserDb} variant="outline" className="rounded-xl">
+                                                        {isTestingUserDb ? (
+                                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                                        ) : (
+                                                            <><Zap className="h-4 w-4 mr-2" />{t("ui.settings.testConnection")}</>
+                                                        )}
+                                                    </Button>
+                                                    <Button onClick={handleSaveUserDb} disabled={savingUserDb || !hasTestedUserDb} className="rounded-xl">
+                                                        {savingUserDb ? (
+                                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                                        ) : (
+                                                            <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveSettings")}</>
+                                                        )}
+                                                    </Button>
+                                                    {!hasTestedUserDb && !isTestingUserDb && (
+                                                        <span className="text-xs text-muted-foreground animate-pulse">{t("ui.settings.testRequiredBeforeSave")}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </TabsContent>
+
+                                <TabsContent value="tunnel" className="p-6 space-y-5 mt-0 outline-none">
+                                    <div className="flex flex-col gap-1">
+                                        <h2 className="text-lg font-bold text-card-foreground flex items-center gap-2">
+                                            <Router className="h-5 w-5" />
+                                            {t("ui.settings.tunnelGatewayConfig")}
+                                        </h2>
+                                        <p className="text-sm text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.tunnelGatewayDesc") }} />
+                                    </div>
+                                    {ngrokConfig && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <h3 className="text-md font-semibold text-primary">Ngrok</h3>
+                                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.ngrokDesc") }} />
+                                            </div>
+                                            <div className="space-y-3 pl-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Checkbox id="ngrokEnabled" checked={ngrokConfig.enabled} onCheckedChange={(checked) => updateNgrokConfig({ enabled: !!checked })} />
+                                                        <Label htmlFor="ngrokEnabled" className="text-sm cursor-pointer">{t("ui.common.isEnabled")}</Label>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-sm font-medium">Token</Label>
+                                                    <Input value={ngrokConfig.authToken} onChange={(e) => updateNgrokConfig({ authToken: e.target.value })} placeholder="e.g. 2Rk9..." className="rounded-xl" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-sm font-medium">{t("ui.settings.customDomain")}</Label>
+                                                    <Input value={ngrokConfig.domain} onChange={(e) => updateNgrokConfig({ domain: e.target.value })} placeholder="e.g. static.yourdomain.com" className="rounded-xl" />
+                                                    <p className="text-xs text-muted-foreground pt-1">{t("ui.settings.customDomainDesc")}</p>
+                                                </div>
+                                                <div className="pt-2">
+                                                    <Button onClick={handleSaveNgrok} disabled={savingNgrok} className="rounded-xl">
+                                                        {savingNgrok ? (
+                                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                                        ) : (
+                                                            <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveNgrok")}</>
+                                                        )}
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {ngrokConfig && cloudflareConfig && <div className="border-t border-border" />}
+                                    {cloudflareConfig && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <h3 className="text-md font-semibold text-primary">Cloudflare Tunnel</h3>
+                                                <p className="text-xs text-muted-foreground whitespace-pre-line" dangerouslySetInnerHTML={{ __html: t("ui.settings.cloudflareDesc") }} />
+                                            </div>
+                                            <div className="space-y-3 pl-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Checkbox id="cfEnabled" checked={cloudflareConfig.enabled} onCheckedChange={(checked) => updateCloudflareConfig({ enabled: !!checked })} />
+                                                        <Label htmlFor="cfEnabled" className="text-sm cursor-pointer">{t("ui.common.isEnabled")}</Label>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label className="text-sm font-medium">Token</Label>
+                                                    <Input value={cloudflareConfig.token} onChange={(e) => updateCloudflareConfig({ token: e.target.value })} placeholder="e.g. eyJh..." className="rounded-xl" />
+                                                </div>
+                                                <div className="flex flex-col gap-1 pt-1">
+                                                    <div className="flex items-center space-x-2">
+                                                        <Checkbox id="cfLogEnabled" checked={cloudflareConfig.logEnabled} onCheckedChange={(checked) => updateCloudflareConfig({ logEnabled: !!checked })} />
+                                                        <Label htmlFor="cfLogEnabled" className="text-sm cursor-pointer">{t("ui.settings.enableLog")}</Label>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground pl-6">{t("ui.settings.cloudflareLogDesc")}</p>
+                                                </div>
+                                                <div className="flex items-center gap-3 pt-2">
+                                                    <Button onClick={handleSaveCloudflare} disabled={savingCloudflare} className="rounded-xl">
+                                                        {savingCloudflare ? (
+                                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.auth.submitting")}</>
+                                                        ) : (
+                                                            <><Save className="h-4 w-4 mr-2" />{t("ui.settings.saveCloudflare")}</>
+                                                        )}
+                                                    </Button>
+                                                    <Button onClick={handleTestCloudflared} disabled={isTestingCloudflared} className="rounded-xl" variant="outline">
+                                                        {isTestingCloudflared ? (
+                                                            <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("ui.common.downloading")}</>
+                                                        ) : (
+                                                            <><Download className="h-4 w-4 mr-2" />{t("ui.settings.downloadCloudflared")}</>
+                                                        )}
+                                                    </Button>
+                                                    <AlertDialog open={showDownloadError} onOpenChange={setShowDownloadError}>
+                                                        <AlertDialogContent className="rounded-2xl max-w-2xl w-[90vw]">
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle className="text-destructive flex items-center gap-2">
+                                                                    <Shield className="h-5 w-5" />
+                                                                    {t("ui.settings.downloadFailed")}
+                                                                </AlertDialogTitle>
+                                                                <AlertDialogDescription className="whitespace-pre-wrap break-all mt-2 font-mono text-xs bg-muted/50 p-4 rounded-xl border border-border/50 max-h-60 overflow-y-auto">
+                                                                    {downloadErrorMessage}
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel className="rounded-xl w-full sm:w-auto">{t("ui.common.confirm")}</AlertDialogCancel>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </TabsContent>
+                            </div>
+                        </Tabs>
+                    </div>
                 ) : null}
+
             </div>
         </div>
     )
