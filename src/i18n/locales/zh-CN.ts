@@ -339,6 +339,8 @@ export default {
     "ui.settings.databaseConnMaxLifetime": "连接最大存活时间 (MaxLifetime)",
     "ui.settings.databaseConnMaxIdleTime": "连接最大空闲时间 (MaxIdleTime)",
     "ui.settings.databaseMaxWriteConcurrency": "最大写入并发数 (MaxWriteConcurrency)",
+    "ui.settings.databaseSchema": "数据库 Schema (Postgres)",
+    "ui.settings.databaseSslMode": "SSL 模式 (SSL Mode)",
     "ui.settings.mysqlPermissionWarning": "注意：当使用 MySQL 时，提供的账号必须具有创建数据库 (CREATE DATABASE) 的权限，用于用户信息隔离。",
     "ui.settings.postgresPermissionWarning": "注意：当使用 PostgreSQL 时，提供的账号必须具有创建数据库 (CREATE DATABASE) 的权限，用于用户信息隔离。",
     "ui.settings.testConnection": "连接测试",

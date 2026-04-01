@@ -1,5 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog";
-import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe, Database, ChevronLeft, ChevronRight, SlidersHorizontal, BookOpen, Share2, Zap, Router } from "lucide-react";
+import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, Lock, Save, HelpCircle, Github, Send, RefreshCw, Cpu, Download, Globe, Database, ChevronLeft, ChevronRight, SlidersHorizontal, BookOpen, Share2, Zap, Router, Eye, EyeOff } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
@@ -51,9 +51,11 @@ interface UserDatabaseConfig {
     type: string
     host?: string
     port?: number
-    user?: string
+    userName?: string
     password?: string
     name?: string
+    schema?: string
+    sslMode?: string
     maxIdleConns?: number
     maxOpenConns?: number
     connMaxLifetime?: string
@@ -83,6 +85,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
     const [savingUserDb, setSavingUserDb] = useState(false)
     const [isTestingUserDb, setIsTestingUserDb] = useState(false)
     const [hasTestedUserDb, setHasTestedUserDb] = useState(false)
+    const [showDbPassword, setShowDbPassword] = useState(false)
     const [activeTab, setActiveTab] = useState("font")
 
     const token = localStorage.getItem("token")
@@ -148,10 +151,10 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 body: JSON.stringify(config),
             })
             const res = await response.json()
-            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+            if (res.code > 0 && res.code < 200 && res.status !== false) {
                 toast.success(t("ui.settings.saveSuccess"))
             } else {
-                toast.error(res.message || t("ui.settings.saveFailed"))
+                toast.error(`${res.message || t("ui.settings.saveFailed")}${res.details ? `\n${res.details}` : ""}`)
             }
         } catch {
             toast.error(t("ui.settings.saveFailed"))
@@ -174,10 +177,10 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 body: JSON.stringify(ngrokConfig),
             })
             const res = await response.json()
-            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+            if (res.code > 0 && res.code < 200 && res.status !== false) {
                 toast.success(t("ui.settings.saveSuccess"))
             } else {
-                toast.error(res.message || t("ui.settings.saveFailed"))
+                toast.error(`${res.message || t("ui.settings.saveFailed")}${res.details ? `\n${res.details}` : ""}`)
             }
         } catch {
             toast.error(t("ui.settings.saveFailed"))
@@ -204,10 +207,10 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 body: JSON.stringify(cloudflareConfig),
             })
             const res = await response.json()
-            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+            if (res.code > 0 && res.code < 200 && res.status !== false) {
                 toast.success(t("ui.settings.saveSuccess"))
             } else {
-                toast.error(res.message || t("ui.settings.saveFailed"))
+                toast.error(`${res.message || t("ui.settings.saveFailed")}${res.details ? `\n${res.details}` : ""}`)
             }
         } catch {
             toast.error(t("ui.settings.saveFailed"))
@@ -234,10 +237,10 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 body: JSON.stringify(userDbConfig),
             })
             const res = await response.json()
-            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+            if (res.code > 0 && res.code < 200 && res.status !== false) {
                 toast.success(t("ui.settings.saveSuccess"))
             } else {
-                toast.error(res.message || t("ui.settings.saveFailed"))
+                toast.error(`${res.message || t("ui.settings.saveFailed")}${res.details ? `\n${res.details}` : ""}`)
             }
         } catch {
             toast.error(t("ui.settings.saveFailed"))
@@ -260,11 +263,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 body: JSON.stringify(userDbConfig),
             })
             const res = await response.json()
-            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+            if (res.code > 0 && res.code < 200 && res.status !== false) {
                 toast.success(t("ui.settings.testSuccess"))
                 setHasTestedUserDb(true)
             } else {
-                toast.error(res.message || t("ui.settings.testFailed"))
+                toast.error(`${res.message || t("ui.settings.testFailed")}${res.details ? `\n${res.details}` : ""}`)
                 setHasTestedUserDb(false)
             }
         } catch {
@@ -282,7 +285,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 headers: { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() },
             })
             const res = await response.json()
-            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+            if (res.code > 0 && res.code < 200 && res.status !== false) {
                 toast.success(t("ui.settings.downloadSuccess"))
                 setHasTestedCloudflared(true)
             } else {
@@ -306,11 +309,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 headers: { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() },
             })
             const res = await response.json()
-            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+            if (res.code > 0 && res.code < 200 && res.status !== false) {
                 toast.success(t("api.system.restart.success"))
                 setOverviewRefreshKey(prev => prev + 1)
             } else {
-                toast.error(res.message || t("api.system.restart.error"))
+                toast.error(`${res.message || t("api.system.restart.error")}${res.details ? `\n${res.details}` : ""}`)
             }
         } catch {
             toast.error(t("api.system.restart.error"))
@@ -327,11 +330,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                 headers: { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() },
             })
             const res = await response.json()
-            if (res.code === 0 || (res.code < 100 && res.code > 0)) {
+            if (res.code > 0 && res.code < 200 && res.status !== false) {
                 toast.success(t("ui.system.manualGCSuccess"))
                 setOverviewRefreshKey(prev => prev + 1)
             } else {
-                toast.error(res.message || t("api.system.gc.error"))
+                toast.error(`${res.message || t("api.system.gc.error")}${res.details ? `\n${res.details}` : ""}`)
             }
         } catch {
             toast.error(t("api.system.gc.error"))
@@ -371,22 +374,22 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
 
                 if (!isActive) return
 
-                if (configRes.code === 0 || (configRes.code < 100 && configRes.code > 0)) {
+                if (configRes.code > 0 && configRes.code < 200 && configRes.status !== false) {
                     setConfig(configRes.data)
                 } else {
                     toast.error(configRes.message || t("ui.common.error"))
                     if (!config) onBack?.()
                 }
 
-                if (ngrokRes.code === 0 || (ngrokRes.code < 100 && ngrokRes.code > 0)) {
+                if (ngrokRes.code > 0 && ngrokRes.code < 200 && ngrokRes.status !== false) {
                     setNgrokConfig(ngrokRes.data)
                 }
 
-                if (cloudflareRes.code === 0 || (cloudflareRes.code < 100 && cloudflareRes.code > 0)) {
+                if (cloudflareRes.code > 0 && cloudflareRes.code < 200 && cloudflareRes.status !== false) {
                     setCloudflareConfig(cloudflareRes.data)
                 }
 
-                if (userDbRes.code === 0 || (userDbRes.code < 100 && userDbRes.code > 0)) {
+                if (userDbRes.code > 0 && userDbRes.code < 200 && userDbRes.status !== false) {
                     setUserDbConfig(userDbRes.data)
                     setHasTestedUserDb(true)
                 }
@@ -895,7 +898,6 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                                                         </SelectContent>
                                                     </Select>
                                                     {userDbConfig.type === 'mysql' && <p className="text-xs text-amber-500 font-medium">{t("ui.settings.mysqlPermissionWarning")}</p>}
-                                                    {userDbConfig.type === 'postgres' && <p className="text-xs text-amber-500 font-medium">{t("ui.settings.postgresPermissionWarning")}</p>}
                                                 </div>
                                                 {(userDbConfig.type === 'mysql' || userDbConfig.type === 'postgres') && (
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300 border-t border-border pt-4">
@@ -909,16 +911,58 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseUser")}</Label>
-                                                            <Input value={userDbConfig.user} onChange={(e) => updateUserDbConfig({ user: e.target.value })} placeholder="root" className="rounded-xl" />
+                                                            <Input value={userDbConfig.userName} onChange={(e) => updateUserDbConfig({ userName: e.target.value })} placeholder="root" className="rounded-xl" />
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databasePassword")}</Label>
-                                                            <Input type="password" value={userDbConfig.password} onChange={(e) => updateUserDbConfig({ password: e.target.value })} placeholder="••••••••" className="rounded-xl" />
+                                                            <div className="relative">
+                                                                <Input
+                                                                    type={showDbPassword ? "text" : "password"}
+                                                                    value={userDbConfig.password}
+                                                                    onChange={(e) => updateUserDbConfig({ password: e.target.value })}
+                                                                    placeholder="••••••••"
+                                                                    className="rounded-xl pr-10"
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="icon"
+                                                                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-muted-foreground hover:text-foreground"
+                                                                    onClick={() => setShowDbPassword(!showDbPassword)}
+                                                                >
+                                                                    {showDbPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseName")}</Label>
                                                             <Input value={userDbConfig.name} onChange={(e) => updateUserDbConfig({ name: e.target.value })} placeholder="fast_note" className="rounded-xl" />
                                                         </div>
+                                                        {userDbConfig.type === 'postgres' && (
+                                                            <>
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseSchema")}</Label>
+                                                                    <Input value={userDbConfig.schema} onChange={(e) => updateUserDbConfig({ schema: e.target.value })} placeholder="public" className="rounded-xl" />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseSslMode")}</Label>
+                                                                    <Select
+                                                                        value={userDbConfig.sslMode || "disable"}
+                                                                        onValueChange={(value) => updateUserDbConfig({ sslMode: value })}
+                                                                    >
+                                                                        <SelectTrigger className="rounded-xl">
+                                                                            <SelectValue placeholder="SSL Mode" />
+                                                                        </SelectTrigger>
+                                                                        <SelectContent className="rounded-xl">
+                                                                            <SelectItem value="disable">disable</SelectItem>
+                                                                            <SelectItem value="require">require</SelectItem>
+                                                                            <SelectItem value="verify-ca">verify-ca</SelectItem>
+                                                                            <SelectItem value="verify-full">verify-full</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                            </>
+                                                        )}
                                                         <div className="space-y-2">
                                                             <Label className="text-xs text-muted-foreground ml-1">{t("ui.settings.databaseMaxIdleConns")}</Label>
                                                             <Input type="number" value={userDbConfig.maxIdleConns} onChange={(e) => updateUserDbConfig({ maxIdleConns: parseInt(e.target.value) || 0 })} placeholder="10" className="rounded-xl" />

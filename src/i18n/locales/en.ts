@@ -339,6 +339,8 @@ export default {
     "ui.settings.databaseConnMaxLifetime": "Connection Max Lifetime (MaxLifetime)",
     "ui.settings.databaseConnMaxIdleTime": "Connection Max Idle Time (MaxIdleTime)",
     "ui.settings.databaseMaxWriteConcurrency": "Max Write Concurrency (MaxWriteConcurrency)",
+    "ui.settings.databaseSchema": "Database Schema (Postgres)",
+    "ui.settings.databaseSslMode": "SSL Mode",
     "ui.settings.mysqlPermissionWarning": "Note: When using MySQL, the provided account must have CREATE DATABASE permissions for user information isolation.",
     "ui.settings.postgresPermissionWarning": "Note: When using PostgreSQL, the provided account must have CREATE DATABASE permissions for user information isolation.",
     "ui.settings.testConnection": "Test Connection",
