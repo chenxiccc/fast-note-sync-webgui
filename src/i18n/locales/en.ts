@@ -169,8 +169,6 @@ export default {
     "ui.note.noVaultsForNotes": "No note vaults yet",
     "ui.note.searchPath": "Path",
     "ui.note.searchContentMode": "Content",
-    "ui.note.searchRegex": "Regex",
-    "ui.note.invalidRegex": "Invalid regular expression",
     "ui.note.sortByBy": "Sort by",
     "ui.note.sortByMtime": "Modification time",
     "ui.note.sortByCtime": "Creation time",

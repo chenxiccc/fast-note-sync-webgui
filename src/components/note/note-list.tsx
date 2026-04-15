@@ -1,4 +1,4 @@
-import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, Regex, FolderSearch, TextCursorInput, Share2 } from "lucide-react";
+import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, FolderSearch, TextCursorInput, Share2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -18,7 +18,7 @@ import { format } from "date-fns";
 import { ShareModal } from "@/components/share/share-modal";
 
 
-type SearchMode = "path" | "content" | "regex";
+type SearchMode = "path" | "content";
 type SortBy = "mtime" | "ctime" | "path";
 type SortOrder = "desc" | "asc";
 export type ShareFilterType = 'active' | null;
@@ -60,7 +60,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
     const [totalRows, setTotalRows] = useState(0);
     const [debouncedKeyword, setDebouncedKeyword] = useState(searchKeyword);
     const [searchMode, setSearchMode] = useState<SearchMode>("path");
-    const [regexError, setRegexError] = useState<string | null>(null);
+
     const [sortBy, setSortBy] = useState<SortBy>("mtime");
     const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
     const [selectedPaths, setSelectedPaths] = useState<Set<string>>(new Set());
@@ -109,28 +109,12 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
         return () => clearTimeout(timer);
     }, [searchKeyword]);
 
-    // 验证正则表达式
-    useEffect(() => {
-        if (searchMode === "regex" && searchKeyword) {
-            try {
-                new RegExp(searchKeyword);
-                setRegexError(null);
-            } catch {
-                setRegexError(t("ui.note.invalidRegex"));
-            }
-        } else {
-            setRegexError(null);
-        }
-    }, [searchKeyword, searchMode, t]);
+
 
     const fetchNotes = (currentPage: number = page, currentPageSize: number = pageSize, keyword: string = debouncedKeyword) => {
         const requestId = ++noteRequestIdRef.current;
 
-        // 如果是正则模式且有错误，不发起请求
-        if (searchMode === "regex" && regexError) {
-            setLoading(false);
-            return;
-        }
+
 
         setLoading(true);
 
@@ -174,15 +158,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
 
                 let filteredList = data?.list || [];
 
-                // 前端正则过滤（因为后端使用 LIKE 作为后备）
-                if (searchMode === "regex" && keyword && filteredList.length > 0) {
-                    try {
-                        const regex = new RegExp(keyword, "i");
-                        filteredList = filteredList.filter(note => regex.test(note.path));
-                    } catch {
-                        // 正则无效时不过滤
-                    }
-                }
+
 
                 setNotes(filteredList);
                 setTotalRows(data?.pager?.totalRows || 0);
@@ -409,7 +385,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                             <Input
                                 type="text"
                                 placeholder={t("ui.note.searchPlaceholder")}
-                                className={`pl-9 pr-14 rounded-xl ${regexError ? "border-destructive" : ""}`}
+                                className="pl-9 pr-14 rounded-xl"
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
                             />
@@ -427,7 +403,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                         <button className="flex items-center gap-1 px-1.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">
                                             {searchMode === "path" && <FolderSearch className="h-3.5 w-3.5" />}
                                             {searchMode === "content" && <FileText className="h-3.5 w-3.5" />}
-                                            {searchMode === "regex" && <Regex className="h-3.5 w-3.5" />}
+
                                             <ChevronDown className="h-3 w-3" />
                                         </button>
                                     </DropdownMenuTrigger>
@@ -450,15 +426,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                                 <span>{t("ui.note.searchContentMode")}</span>
                                             </div>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem
-                                            onClick={() => setSearchMode("regex")}
-                                            className={`rounded-lg flex items-center justify-between ${searchMode === "regex" ? "bg-accent" : ""}`}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <Regex className="h-4 w-4" />
-                                                <span>{t("ui.note.searchRegex")}</span>
-                                            </div>
-                                        </DropdownMenuItem>
+
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
@@ -480,11 +448,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                             </Button>
                         )}
                     </div>
-                    {regexError && (
-                        <div className="flex items-center gap-2 px-1">
-                            <span className="text-xs text-destructive">{regexError}</span>
-                        </div>
-                    )}
+
                 </div>
             </div>
 

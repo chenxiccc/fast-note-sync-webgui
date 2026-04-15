@@ -169,8 +169,6 @@ export default {
     "ui.note.noVaultsForNotes": "まだノート庫がありません",
     "ui.note.searchPath": "パス",
     "ui.note.searchContentMode": "内容",
-    "ui.note.searchRegex": "正規表現",
-    "ui.note.invalidRegex": "無効な正規表現です",
     "ui.note.sortByBy": "ソート",
     "ui.note.sortByMtime": "更新日時",
     "ui.note.sortByCtime": "作成日時",

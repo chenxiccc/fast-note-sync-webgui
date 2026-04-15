@@ -169,8 +169,7 @@ export default {
     "ui.note.noVaultsForNotes": "还没有任何笔记库",
     "ui.note.searchPath": "路径",
     "ui.note.searchContentMode": "内容",
-    "ui.note.searchRegex": "正则",
-    "ui.note.invalidRegex": "正则表达式无效",
+
     "ui.note.sortByBy": "排序",
     "ui.note.sortByMtime": "修改时间",
     "ui.note.sortByCtime": "创建时间",

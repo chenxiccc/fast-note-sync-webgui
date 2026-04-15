@@ -169,8 +169,6 @@ export default {
     "ui.note.noVaultsForNotes": "아직 노트 저장소가 없습니다",
     "ui.note.searchPath": "경로",
     "ui.note.searchContentMode": "내용",
-    "ui.note.searchRegex": "정규식",
-    "ui.note.invalidRegex": "정규식이 유효하지 않습니다",
     "ui.note.sortByBy": "정렬",
     "ui.note.sortByMtime": "수정 시간",
     "ui.note.sortByCtime": "생성 시간",
