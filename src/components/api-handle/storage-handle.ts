@@ -1,9 +1,9 @@
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
 import { StorageConfig } from "@/lib/types/storage";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
 import { useTranslation } from "react-i18next";
-import { getBrowserLang } from "@/i18n/utils";
 import { useCallback } from "react";
 import env from "@/env.ts";
 
@@ -23,12 +23,7 @@ export function useStorageHandle() {
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/storage?limit=100"), {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {
@@ -54,12 +49,7 @@ export function useStorageHandle() {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/storage"), {
                 method: "DELETE",
                 body: JSON.stringify({ id }),
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {
@@ -90,12 +80,7 @@ export function useStorageHandle() {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/storage"), {
                 method: "POST",
                 body: JSON.stringify(formData),
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {
@@ -122,12 +107,7 @@ export function useStorageHandle() {
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/storage/enabled_types"), {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {
@@ -159,12 +139,7 @@ export function useStorageHandle() {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/storage/validate"), {
                 method: "POST",
                 body: JSON.stringify(formData),
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {

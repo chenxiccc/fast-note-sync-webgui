@@ -1,6 +1,6 @@
 import type { LoginFormData, RegisterFormData } from "@/lib/validations/user-schema";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
-import { getBrowserLang } from "@/i18n/utils";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import env from "@/env.ts";
@@ -16,11 +16,7 @@ export function useAuth() {
       const response = await fetch(addCacheBuster(env.API_URL + "/api/user/login"), {
         method: "POST",
         body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-          Domain: window.location.origin,
-          Lang: getBrowserLang(),
-        },
+        headers: buildApiHeaders({ token: null }),
       })
 
       if (!response.ok) {
@@ -52,11 +48,7 @@ export function useAuth() {
       const response = await fetch(addCacheBuster(env.API_URL + "/api/user/register"), {
         method: "POST",
         body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-          Domain: window.location.origin,
-          Lang: getBrowserLang(),
-        },
+        headers: buildApiHeaders({ token: null }),
       })
 
       if (!response.ok) {

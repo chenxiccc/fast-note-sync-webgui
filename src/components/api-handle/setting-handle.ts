@@ -1,7 +1,7 @@
 import { SettingItem, SettingResponse, SettingListRes } from "@/lib/types/setting";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
-import { getBrowserLang } from "@/i18n/utils";
 import { useCallback, useMemo } from "react";
 import env from "@/env.ts";
 
@@ -10,10 +10,7 @@ export function useSettingHandle() {
     const token = localStorage.getItem("token")!
 
     const getHeaders = useCallback(() => ({
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        Domain: window.location.origin,
-        Lang: getBrowserLang(),
+        ...buildApiHeaders({ token }),
     }), [token])
 
     /**

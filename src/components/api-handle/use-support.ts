@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
-import { getBrowserLang } from "@/i18n/utils";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import env from "@/env.ts";
 
 
@@ -40,10 +40,10 @@ export function useSupport() {
 
             const response = await fetch(addCacheBuster(url), {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Lang": getBrowserLang(),
-                },
+                headers: buildApiHeaders({
+                    token: null,
+                    includeDomain: false,
+                }),
             });
 
             if (!response.ok) {

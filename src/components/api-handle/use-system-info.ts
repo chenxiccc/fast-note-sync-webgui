@@ -1,6 +1,6 @@
 import { addCacheBuster } from "@/lib/utils/cache-buster";
 import { useState, useEffect, useCallback } from "react";
-import { getBrowserLang } from "@/i18n/utils";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import env from "@/env.ts";
 
 
@@ -79,11 +79,10 @@ export function useSystemInfo() {
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/systeminfo"), {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({
+                    token,
+                    includeDomain: false,
+                }),
             });
 
             if (!response.ok) {
@@ -99,11 +98,11 @@ export function useSystemInfo() {
             } else {
                 setError(res.message || "Failed to get system info");
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             if (isActive && !isActive.current) {
                 return;
             }
-            if (error.name === "AbortError") {
+            if (error instanceof Error && error.name === "AbortError") {
                 return;
             }
             setError("Failed to get system info");

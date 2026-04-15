@@ -1,8 +1,8 @@
 import { GitSyncConfigDTO, GitSyncConfigRequest, GitSyncValidateRequest, GitSyncHistoryDTO } from "@/lib/types/git";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
 import { useTranslation } from "react-i18next";
-import { getBrowserLang } from "@/i18n/utils";
 import { useCallback, useMemo } from "react";
 import env from "@/env.ts";
 
@@ -15,15 +15,10 @@ export function useGitHandle() {
     const token = localStorage.getItem("token")!;
 
     const getHeaders = useCallback((contentType = true) => {
-        const headers: Record<string, string> = {
-            "Authorization": `Bearer ${token}`,
-            Domain: window.location.origin,
-            Lang: getBrowserLang(),
-        };
-        if (contentType) {
-            headers["Content-Type"] = "application/json";
-        }
-        return headers;
+        return buildApiHeaders({
+            token,
+            includeContentType: contentType,
+        });
     }, [token]);
 
     /**

@@ -2,10 +2,10 @@ import { Info, GitBranch, Tag, RefreshCw, AlertCircle, CheckCircle, ExternalLink
 import { useUpdateCheck } from "@/components/api-handle/use-update-check";
 import { useVersion } from "@/components/api-handle/use-version";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
-import { getBrowserLang } from "@/i18n/utils";
 import { useState } from "react";
 import env from "@/env.ts";
 
@@ -45,10 +45,11 @@ export function VersionOverview({ showUpgrade = true, children }: { showUpgrade?
         setIsUpgrading(true)
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/upgrade?version=latest"), {
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({
+                    token,
+                    includeContentType: false,
+                    includeDomain: false,
+                }),
             })
             const res = await response.json()
             if (res.code === 0 || (res.code < 100 && res.code > 0)) {

@@ -1,7 +1,7 @@
 import { ShareListResponse, ShareCreateResponse } from "@/lib/types/share";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
-import { getBrowserLang } from "@/i18n/utils";
 import { useCallback } from "react";
 import env from "@/env.ts";
 
@@ -9,11 +9,9 @@ import env from "@/env.ts";
 export function useShareHandle() {
     const token = localStorage.getItem("token")!
 
-    const getHeaders = useCallback(() => ({
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        Domain: window.location.origin,
-        Lang: getBrowserLang(),
+    const getHeaders = useCallback((extraHeaders: Record<string, string> = {}) => buildApiHeaders({
+        token,
+        extraHeaders,
     }), [token])
 
     const handleTokenExpired = useCallback(() => {

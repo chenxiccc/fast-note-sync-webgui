@@ -1,5 +1,6 @@
 import { FileListResponse, FileRenameRequest } from "@/lib/types/file";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
 import { getBrowserLang } from "@/i18n/utils";
 import { useCallback, useMemo } from "react";
@@ -14,12 +15,7 @@ import env from "@/env.ts";
 export function useFileHandle() {
     const getHeaders = useCallback(() => {
         const currentToken = localStorage.getItem("token") || "";
-        return {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${currentToken}`,
-            Domain: window.location.origin,
-            Lang: getBrowserLang(),
-        };
+        return buildApiHeaders({ token: currentToken });
     }, []);
 
     const handleTokenExpired = useCallback(() => {

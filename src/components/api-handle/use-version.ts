@@ -2,7 +2,7 @@ import { addCacheBuster } from "@/lib/utils/cache-buster";
 import type { VersionInfo } from "@/lib/types/version";
 import { useAppStore } from "@/stores/app-store";
 import { useTranslation } from "react-i18next";
-import { getBrowserLang } from "@/i18n/utils";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { useState, useEffect } from "react";
 import env from "@/env.ts";
 
@@ -25,11 +25,7 @@ export function useVersion() {
             try {
                 const response = await fetch(addCacheBuster(env.API_URL + "/api/version"), {
                     method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Domain: window.location.origin,
-                        Lang: getBrowserLang(),
-                    },
+                    headers: buildApiHeaders({ token: null }),
                 });
 
                 if (!response.ok) {

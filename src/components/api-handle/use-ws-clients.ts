@@ -1,6 +1,6 @@
 import { addCacheBuster } from "@/lib/utils/cache-buster";
 import { useState, useEffect, useCallback } from "react";
-import { getBrowserLang } from "@/i18n/utils";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import env from "@/env.ts";
 
 
@@ -39,11 +39,10 @@ export function useWSClientInfo() {
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/ws_clients"), {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({
+                    token,
+                    includeDomain: false,
+                }),
             });
 
             if (!response.ok) {

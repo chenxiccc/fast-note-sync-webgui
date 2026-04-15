@@ -3,6 +3,7 @@ import { GitBranch, UserPlus, HardDrive, Trash2, Clock, Shield, Loader2, Type, L
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "@/components/common/Toast";
@@ -10,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { getBrowserLang } from "@/i18n/utils";
 import env from "@/env.ts";
 
 import { VersionOverview } from "./version-overview";
@@ -143,11 +143,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/config"), {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
                 body: JSON.stringify(config),
             })
             const res = await response.json()
@@ -169,11 +165,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/config/ngrok"), {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
                 body: JSON.stringify(ngrokConfig),
             })
             const res = await response.json()
@@ -199,11 +191,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
                 body: JSON.stringify(cloudflareConfig),
             })
             const res = await response.json()
@@ -229,11 +217,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database"), {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
                 body: JSON.stringify(userDbConfig),
             })
             const res = await response.json()
@@ -255,11 +239,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database/test"), {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
                 body: JSON.stringify(userDbConfig),
             })
             const res = await response.json()
@@ -282,7 +262,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         setIsTestingCloudflared(true)
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/cloudflared_tunnel_download"), {
-                headers: { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() },
+                headers: buildApiHeaders({
+                    token,
+                    includeDomain: false,
+                    includeContentType: false,
+                }),
             })
             const res = await response.json()
             if (res.code > 0 && res.code < 200 && res.status !== false) {
@@ -306,7 +290,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         setShowRestartConfirm(false)
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/restart"), {
-                headers: { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() },
+                headers: buildApiHeaders({
+                    token,
+                    includeDomain: false,
+                    includeContentType: false,
+                }),
             })
             const res = await response.json()
             if (res.code > 0 && res.code < 200 && res.status !== false) {
@@ -327,7 +315,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
         setShowGCConfirm(false)
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/gc"), {
-                headers: { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() },
+                headers: buildApiHeaders({
+                    token,
+                    includeDomain: false,
+                    includeContentType: false,
+                }),
             })
             const res = await response.json()
             if (res.code > 0 && res.code < 200 && res.status !== false) {
@@ -354,13 +346,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
 
             if (isActive) setLoading(true)
             try {
-                const headers = { "Authorization": `Bearer ${token}`, Lang: getBrowserLang() }
-
                 const [configResponse, ngrokResponse, cloudflareResponse, userDbResponse] = await Promise.all([
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config"), { headers }),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/ngrok"), { headers }),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), { headers }),
-                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database"), { headers })
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config"), { headers: buildApiHeaders({ token, includeDomain: false, includeContentType: false }) }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/ngrok"), { headers: buildApiHeaders({ token, includeDomain: false, includeContentType: false }) }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/cloudflare"), { headers: buildApiHeaders({ token, includeDomain: false, includeContentType: false }) }),
+                    fetch(addCacheBuster(env.API_URL + "/api/admin/config/user_database"), { headers: buildApiHeaders({ token, includeDomain: false, includeContentType: false }) })
                 ])
 
                 if (!isActive) return
@@ -393,7 +383,7 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
                     setUserDbConfig(userDbRes.data)
                     setHasTestedUserDb(true)
                 }
-            } catch (err: any) {
+            } catch (err: unknown) {
                 if (!isActive) return
                 console.warn("SystemSettings fetch error:", err)
                 toast.error(t("ui.common.error"))

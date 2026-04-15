@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ArrowLeft, ZoomIn, ZoomOut, Maximize } from "lucide-react";
 import { useFileHandle } from "@/components/api-handle/file-handle";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { CanvasData, CanvasNode, Viewport } from "@/lib/types/canvas";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -127,7 +128,15 @@ export function CanvasViewer({
         if (isRecycle) {
             url += (url.includes("?") ? "&" : "?") + "isRecycle=1";
         }
-        fetch(url, { cache: "no-store" })
+        fetch(url, {
+            cache: "no-store",
+            headers: buildApiHeaders({
+                token: localStorage.getItem("token"),
+                includeContentType: false,
+                includeDomain: false,
+                includeLang: false,
+            }),
+        })
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.text();

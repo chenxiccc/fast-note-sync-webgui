@@ -1,7 +1,7 @@
 import { Note, NoteDetail, NoteResponse, NoteHistoryDetail, NoteHistoryListResponse, NoteListResponse, NoteRenameRequest } from "@/lib/types/note";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
-import { getBrowserLang } from "@/i18n/utils";
 import { useCallback, useMemo } from "react";
 import { Folder } from "@/lib/types/folder";
 import env from "@/env.ts";
@@ -10,12 +10,7 @@ import env from "@/env.ts";
 export function useNoteHandle() {
     const token = localStorage.getItem("token")!
 
-    const getHeaders = useCallback(() => ({
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        Domain: window.location.origin,
-        Lang: getBrowserLang(),
-    }), [token])
+    const getHeaders = useCallback(() => buildApiHeaders({ token }), [token])
 
     const handleTokenExpired = useCallback(() => {
         localStorage.removeItem("token")
@@ -366,9 +361,10 @@ export function useNoteHandle() {
             const response = await fetch(addCacheBuster(url), {
                 method: "GET",
                 headers: {
-                    "Content-Type": "application/json",
+                    ...buildApiHeaders({
+                        token: null,
+                    }),
                     "Share-Token": token,
-                    "Lang": getBrowserLang(),
                 },
             })
             if (!response.ok) {

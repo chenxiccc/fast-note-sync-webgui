@@ -1,11 +1,11 @@
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { getBrowserLang } from "@/i18n/utils";
 import env from "@/env.ts";
 
 
@@ -35,10 +35,11 @@ export function ChangePassword({ close }: { close: () => void }) {
 
       const response = await fetch(addCacheBuster(env.API_URL + "/api/user/change_password"), {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Lang": getBrowserLang(),
-        },
+        headers: buildApiHeaders({
+          token,
+          includeDomain: false,
+          includeContentType: false,
+        }),
         body: formData,
       })
 

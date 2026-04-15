@@ -15,10 +15,11 @@ import { AnimatedBackground } from "@/components/user/animated-background";
 import { useShareSettingsStore, COLOR_SCHEMES, ColorScheme } from "@/lib/stores/settings-store";
 import { MarkdownEditor } from "@/components/note/markdown-editor";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
-import { changeLang, getBrowserLang } from "@/i18n/utils";
+import { changeLang } from "@/i18n/utils";
 import { toast } from "@/components/common/Toast";
 import env from "@/env.ts";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { handleFontsUpdate } from "@/lib/utils/font-loader";
 
 export function ShareApp() {
@@ -62,9 +63,11 @@ export function ShareApp() {
             try {
                 const apiUrl = env.API_URL.endsWith("/") ? env.API_URL.slice(0, -1) : env.API_URL;
                 const response = await fetch(addCacheBuster(`${apiUrl}/api/webgui/config`), {
-                    headers: {
-                        "Lang": getBrowserLang()
-                    }
+                    headers: buildApiHeaders({
+                        token: null,
+                        includeContentType: false,
+                        includeDomain: false,
+                    })
                 });
                 if (response.ok && isMounted) {
                     const res = await response.json();

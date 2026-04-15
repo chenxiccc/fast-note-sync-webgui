@@ -1,9 +1,9 @@
 import { BackupConfig, BackupHistory, BackupConfigRequest } from "@/lib/types/backup";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
 import { useTranslation } from "react-i18next";
-import { getBrowserLang } from "@/i18n/utils";
 import { useCallback, useMemo } from "react";
 import env from "@/env.ts";
 
@@ -23,12 +23,7 @@ export function useBackupHandle() {
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/backup/configs"), {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {
@@ -53,11 +48,7 @@ export function useBackupHandle() {
         try {
             const response = await fetch(addCacheBuster(env.API_URL + `/api/backup/config?id=${id}`), {
                 method: "DELETE",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token, includeContentType: false }),
             })
 
             if (!response.ok) {
@@ -83,12 +74,7 @@ export function useBackupHandle() {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/backup/config"), {
                 method: "POST",
                 body: JSON.stringify(data),
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {
@@ -115,12 +101,7 @@ export function useBackupHandle() {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/backup/execute"), {
                 method: "POST",
                 body: JSON.stringify({ id }),
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {
@@ -147,12 +128,7 @@ export function useBackupHandle() {
 
             const response = await fetch(addCacheBuster(url), {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                    Domain: window.location.origin,
-                    Lang: getBrowserLang(),
-                },
+                headers: buildApiHeaders({ token }),
             })
 
             if (!response.ok) {

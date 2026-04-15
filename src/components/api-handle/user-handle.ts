@@ -1,8 +1,8 @@
 import { addCacheBuster } from "@/lib/utils/cache-buster";
+import { buildApiHeaders } from "@/lib/utils/api-headers";
 import type { ChangePassword } from "@/lib/types/user";
 import { toast } from "@/components/common/Toast";
 import { useTranslation } from "react-i18next";
-import { getBrowserLang } from "@/i18n/utils";
 import { useCallback, useMemo } from "react";
 import env from "@/env.ts";
 
@@ -16,12 +16,7 @@ export function useUserHandle() {
     try {
       const response = await fetch(addCacheBuster(env.API_URL + "/api/user/info"), {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-          Domain: window.location.origin,
-          Lang: getBrowserLang(),
-        },
+        headers: buildApiHeaders({ token }),
       })
 
       if (!response.ok) {
@@ -49,12 +44,7 @@ export function useUserHandle() {
     const response = await fetch(addCacheBuster(env.API_URL + "/api/user/change_password"), {
       method: "POST",
       body: JSON.stringify(formData),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-        Domain: window.location.origin,
-        Lang: getBrowserLang(),
-      },
+      headers: buildApiHeaders({ token }),
     })
     if (!response.ok) {
       throw new Error("Network response was not ok")
