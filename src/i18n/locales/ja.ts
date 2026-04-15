@@ -1,4 +1,4 @@
-export default {
+﻿export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "高性能、低遅延のノート同期、管理、REST サービス",
@@ -381,7 +381,7 @@ export default {
     "ui.system.upgrading": "アップグレード中...",
     "ui.system.upgradeSuccess": "アップグレードのトリガーに成功しました。ページが再読み込みされます。",
     "ui.system.upgradeFailed": "アップグレードのトリガーに失敗しました",
-    "ui.system.changelog": "更新履歴",
+    "ui.system.upgradeRefreshTimeout": "アップグレードは完了しましたが、サービスがまだ利用可能ではありません。手動で更新してください。",
     "ui.system.viewChangelog": "更新履歴を表示",
     "ui.system.getVersionError": "バージョン情報の取得に失敗しました",
     "ui.system.getWebGuiConfigError": "WebGui 設定の取得に失敗しました:",
@@ -688,3 +688,4 @@ export default {
     "ui.share.passwordPlaceholder": "パスワードを入力してください...",
     "ui.share.preview": "コンテンツのプレビュー",
 };
+

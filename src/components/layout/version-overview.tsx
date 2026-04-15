@@ -6,7 +6,7 @@ import { buildApiHeaders } from "@/lib/utils/api-headers";
 import { toast } from "@/components/common/Toast";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import env from "@/env.ts";
 
 
@@ -25,6 +25,17 @@ export function VersionOverview({ showUpgrade = true, children }: { showUpgrade?
     const { versionInfo, isLoading: versionLoading } = useVersion()
     const { checkUpdate, isChecking, updateResult } = useUpdateCheck()
     const [isUpgrading, setIsUpgrading] = useState(false)
+    const upgradePollTimerRef = useRef<number | null>(null)
+    const upgradePollCancelledRef = useRef(false)
+
+    useEffect(() => {
+        return () => {
+            upgradePollCancelledRef.current = true
+            if (upgradePollTimerRef.current !== null) {
+                window.clearTimeout(upgradePollTimerRef.current)
+            }
+        }
+    }, [])
 
     const safeVersionNewLink = getSafeHttpUrl(versionInfo?.versionNewLink)
     const safeReleaseUrl = getSafeHttpUrl(updateResult?.releaseUrl || versionInfo?.versionNewLink)
@@ -42,6 +53,12 @@ export function VersionOverview({ showUpgrade = true, children }: { showUpgrade?
         const token = localStorage.getItem("token")
         if (!token) return
 
+        upgradePollCancelledRef.current = false
+        if (upgradePollTimerRef.current !== null) {
+            window.clearTimeout(upgradePollTimerRef.current)
+            upgradePollTimerRef.current = null
+        }
+
         setIsUpgrading(true)
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/upgrade?version=latest"), {
@@ -54,9 +71,50 @@ export function VersionOverview({ showUpgrade = true, children }: { showUpgrade?
             const res = await response.json()
             if (res.code === 0 || (res.code < 100 && res.code > 0)) {
                 toast.success(t("ui.system.upgradeSuccess"))
-                setTimeout(() => {
-                    window.location.reload()
-                }, 4000)
+
+                const pollStartedAt = Date.now()
+                let hasGoneDown = false
+                const pollHealth = async () => {
+                    if (upgradePollCancelledRef.current) {
+                        return
+                    }
+
+                    if (Date.now() - pollStartedAt >= 5 * 60 * 1000) {
+                        toast.error(t("ui.system.upgradeRefreshTimeout"))
+                        setIsUpgrading(false)
+                        return
+                    }
+
+                    try {
+                        const controller = new AbortController()
+                        const timeoutId = setTimeout(() => controller.abort(), 5000)
+
+                        const healthResponse = await fetch(addCacheBuster(env.API_URL + "/api/health"), {
+                            signal: controller.signal
+                        })
+                        clearTimeout(timeoutId)
+
+                        if (healthResponse.ok) {
+                            if (hasGoneDown) {
+                                window.location.reload()
+                                return
+                            }
+                            // 如果服务仍在运行（升级尚未开始导致服务停止），我们继续等待它停机
+                        } else {
+                            // 接口返回非 200，认为服务正在关闭
+                            hasGoneDown = true
+                        }
+                    } catch {
+                        // 无法连接或请求超时通常意味着服务已停止运行，正在重启
+                        hasGoneDown = true
+                    }
+
+                    upgradePollTimerRef.current = window.setTimeout(() => {
+                        void pollHealth()
+                    }, 2000)
+                }
+
+                void pollHealth()
             } else {
                 toast.error(res.message || t("ui.system.upgradeFailed"))
                 setIsUpgrading(false)

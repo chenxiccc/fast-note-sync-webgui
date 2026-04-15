@@ -1,4 +1,4 @@
-export default {
+﻿export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "High-performance, low-latency note synchronization, management, REST service",
@@ -383,7 +383,7 @@ export default {
     "ui.system.upgrading": "Upgrading...",
     "ui.system.upgradeSuccess": "Upgrade triggered successfully, page will refresh shortly",
     "ui.system.upgradeFailed": "Upgrade trigger failed",
-    "ui.system.changelog": "Changelog",
+    "ui.system.upgradeRefreshTimeout": "Upgrade completed, but the service did not become available in time. Please refresh manually.",
     "ui.system.viewChangelog": "View Changelog",
     "ui.system.getVersionError": "Failed to get version information",
     "ui.system.getWebGuiConfigError": "Failed to get WebGui configuration:",
@@ -690,3 +690,4 @@ export default {
     "ui.share.passwordPlaceholder": "Enter password...",
     "ui.share.preview": "Content Preview",
 };
+

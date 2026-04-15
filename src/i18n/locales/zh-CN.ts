@@ -1,4 +1,4 @@
-export default {
+﻿export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "高性能、低延迟的笔记同步, 管理, REST 服务",
@@ -384,7 +384,7 @@ export default {
     "ui.system.upgrading": "升级中...",
     "ui.system.upgradeSuccess": "升级触发成功，页面即将刷新",
     "ui.system.upgradeFailed": "升级触发失败",
-    "ui.system.changelog": "更新日志",
+    "ui.system.upgradeRefreshTimeout": "升级已完成，但服务尚未恢复可用，请手动刷新页面。",
     "ui.system.viewChangelog": "查看更新日志",
     "ui.system.getVersionError": "获取版本信息失败",
     "ui.system.getWebGuiConfigError": "获取WebGui配置失败:",
@@ -691,3 +691,4 @@ export default {
     "ui.share.passwordPlaceholder": "请输入密码...",
     "ui.share.preview": "内容预览",
 };
+

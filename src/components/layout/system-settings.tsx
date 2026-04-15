@@ -13,6 +13,9 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import env from "@/env.ts";
 
+const restartPollTimer = { current: null as number | null };
+const restartPollCancelled = { current: false };
+
 import { VersionOverview } from "./version-overview";
 import { WSClientList } from "./ws-client-list";
 import { SupportList } from "./support-list";
@@ -287,6 +290,11 @@ export function SystemSettings({ onBack, isDashboard = false, isAdmin = false }:
 
     const handleRestart = async () => {
         setIsRestarting(true)
+        restartPollCancelled.current = false
+        if (restartPollTimer.current !== null) {
+            window.clearTimeout(restartPollTimer.current)
+            restartPollTimer.current = null
+        }
         setShowRestartConfirm(false)
         try {
             const response = await fetch(addCacheBuster(env.API_URL + "/api/admin/restart"), {

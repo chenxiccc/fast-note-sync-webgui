@@ -1,4 +1,4 @@
-export default {
+﻿export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "고성능, 저지연 노트 동기화, 관리, REST 서비스",
@@ -381,7 +381,7 @@ export default {
     "ui.system.upgrading": "업그레이드 중...",
     "ui.system.upgradeSuccess": "업그레이드 트리거 성공, 페이지가 곧 새로고침됩니다",
     "ui.system.upgradeFailed": "업그레이드 트리거 실패",
-    "ui.system.changelog": "변경 로그",
+    "ui.system.upgradeRefreshTimeout": "업그레이드는 완료되었지만 서비스가 아직 사용 가능하지 않습니다. 수동으로 새로고침해 주세요.",
     "ui.system.viewChangelog": "변경 로그 보기",
     "ui.system.getVersionError": "버전 정보 가져오기 실패",
     "ui.system.getWebGuiConfigError": "WebGui 설정 가져오기 실패:",
@@ -688,3 +688,4 @@ export default {
     "ui.share.passwordPlaceholder": "비밀번호를 입력하세요...",
     "ui.share.preview": "내용 미리보기",
 };
+
