@@ -73,6 +73,8 @@ const EMPTY_FILE_LINKS: Record<string, string> = {};
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|svg|webp|bmp)$/i;
 const VIDEO_EXTENSIONS = /\.(mp4|webm|mov|mkv|avi|ogv)$/i;
 const AUDIO_EXTENSIONS = /\.(mp3|wav|ogg|m4a|flac|aac)$/i;
+const MARKDOWN_IMAGE_REGEX = /!\[([^\]]*)\]\(([^)]+)\)/g;
+const HTML_IMAGE_REGEX = /<img\b([^>]*?)\bsrc\s*=\s*(['"])(.*?)\2([^>]*)>/gi;
 
 // Callout 类型 -> 颜色映射（text 必须显式声明，不能动态拼接，否则 Tailwind JIT 扫描不到）
 const CALLOUT_STYLES: Record<string, { border: string; bg: string; text: string; icon: string }> = {
@@ -226,6 +228,78 @@ function escapeMarkdownText(text: string): string {
         .replace(/\)/g, "\\)");
 }
 
+function parseMarkdownLinkTarget(raw: string): { target: string; start: number; end: number } | null {
+    let start = 0;
+    while (start < raw.length && /\s/.test(raw[start])) {
+        start += 1;
+    }
+
+    if (start >= raw.length) return null;
+
+    if (raw[start] === "<") {
+        const end = raw.indexOf(">", start + 1);
+        if (end === -1) return null;
+        return { target: raw.slice(start + 1, end), start, end: end + 1 };
+    }
+
+    let end = raw.length;
+    let escaped = false;
+    for (let i = start; i < raw.length; i += 1) {
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+
+        if (raw[i] === "\\") {
+            escaped = true;
+            continue;
+        }
+
+        if (/\s/.test(raw[i])) {
+            end = i;
+            break;
+        }
+    }
+
+    return { target: raw.slice(start, end), start, end };
+}
+
+function buildAttachmentApiUrl(vault: string, path: string, token: string): string {
+    return buildFileApiUrl(vault, path, token);
+}
+
+function resolveLinkedFileUrl(rawTarget: string, fileLinks: Record<string, string>, vault: string, token: string): string | null {
+    const resolvedPath = fileLinks[rawTarget.trim()];
+    if (!resolvedPath) return null;
+    return buildAttachmentApiUrl(vault, resolvedPath, token);
+}
+
+function rewriteMarkdownImageLinks(content: string, fileLinks: Record<string, string>, vault: string, token: string): string {
+    return content.replace(MARKDOWN_IMAGE_REGEX, (match, altText: string, rawDestination: string) => {
+        const parsed = parseMarkdownLinkTarget(rawDestination);
+        if (!parsed) return match;
+
+        const apiUrl = resolveLinkedFileUrl(parsed.target, fileLinks, vault, token);
+        if (!apiUrl) return match;
+
+        let replacementTarget = apiUrl;
+        const originalTarget = rawDestination.slice(parsed.start, parsed.end);
+        if (originalTarget.startsWith("<") && originalTarget.endsWith(">")) {
+            replacementTarget = `<${replacementTarget}>`;
+        }
+
+        return `![${altText}](${rawDestination.slice(0, parsed.start)}${replacementTarget}${rawDestination.slice(parsed.end)})`;
+    });
+}
+
+function rewriteHtmlImageSources(content: string, fileLinks: Record<string, string>, vault: string, token: string): string {
+    return content.replace(HTML_IMAGE_REGEX, (match, beforeSrc: string, quote: string, rawSrc: string, afterSrc: string) => {
+        const apiUrl = resolveLinkedFileUrl(rawSrc, fileLinks, vault, token);
+        if (!apiUrl) return match;
+        return `<img${beforeSrc}src=${quote}${apiUrl}${quote}${afterSrc}>`;
+    });
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const REHYPE_PLUGINS: any[] = [
     rehypeRaw,
@@ -235,7 +309,7 @@ const REHYPE_PLUGINS: any[] = [
 
 // ─── Obsidian 语法转换 ─────────────────────────────────────
 
-function transformObsidianSyntax(
+export function transformObsidianSyntax(
     content: string,
     vault: string,
     fileLinks: Record<string, string>,
@@ -298,22 +372,26 @@ function transformObsidianSyntax(
         return `[📎 ${displayName}](${apiUrl})`;
     });
 
-    // 3. [[page]] wiki link -> <span class="obsidian-wiki-link">
+    // 3. Rewrite standard Markdown and HTML image sources with resolved file API URLs.
+    result = rewriteMarkdownImageLinks(result, fileLinks, vault, token);
+    result = rewriteHtmlImageSources(result, fileLinks, vault, token);
+
+    // 4. [[page]] wiki link -> <span class="obsidian-wiki-link">
     result = result.replace(/\[\[([^\]]+)\]\]/g, (_, inner: string) => {
         const parts = inner.split("|");
         const display = (parts[1] || parts[0]).trim();
         return `<span class="obsidian-wiki-link" title="${parts[0].trim()}">${display}</span>`;
     });
 
-    // 4. ==highlight== 高亮
+    // 5. ==highlight== 高亮
     result = result.replace(/==(.*?)==/g, "<mark>$1</mark>");
 
-    // 5. #tag 标签（不匹配行首的标题 #，前缀仅允许空白或行首）
+    // 6. #tag 标签（不匹配行首的标题 #，前缀仅允许空白或行首）
     result = result.replace(/(^|[\s])#([a-zA-Z\u4e00-\u9fff][\w/\u4e00-\u9fff-]*)/gm, (_, prefix, tag) => {
         return `${prefix}<span class="obsidian-tag">#${tag}</span>`;
     });
 
-    // 6. 还原代码块占位符
+    // 7. 还原代码块占位符
     result = result.replace(new RegExp(`${CODE_PLACEHOLDER.replace(/\0/g, "\\0")}(\\d+)\\0`, "g"), (_, index) => {
         return codeBlocks[parseInt(index, 10)];
     });
