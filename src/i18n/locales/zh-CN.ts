@@ -350,9 +350,8 @@ export default {
     "ui.settings.testRequiredBeforeSave": "请先进行连接测试并确保成功后再保存",
 
     // --- ui.settings-browser ---
-    \"ui.settingsBrowser.title\": \"笔记库配置文件\",
-    \"ui.settingsBrowser.description\": \"直接编辑和管理笔记库根目录下的隐形配置文件 ( 如插件设置、元数据等 )\",
-    \"ui.settingsBrowser.add\": \"新增配置\",
+    "ui.settingsBrowser.title": "笔记库配置文件",
+    "ui.settingsBrowser.add": "新增配置",
     "ui.settingsBrowser.edit": "编辑配置",
     "ui.settingsBrowser.key": "配置键 (Key)",
     "ui.settingsBrowser.value": "配置值 (Value)",

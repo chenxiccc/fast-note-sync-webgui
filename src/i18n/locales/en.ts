@@ -349,9 +349,8 @@ export default {
     "ui.settings.testRequiredBeforeSave": "Please perform a connection test and ensure success before saving",
 
     // --- ui.settings-browser ---
-    \"ui.settingsBrowser.title\": \"Vault Config File\",
-    \"ui.settingsBrowser.description\": \"Directly edit and manage hidden configuration files in the vault root ( e.g., plugin settings, metadata )\",
-    \"ui.settingsBrowser.add\": \"Add Configuration\",
+    "ui.settingsBrowser.title": "Vault Config File",
+    "ui.settingsBrowser.add": "Add Configuration",
     "ui.settingsBrowser.edit": "Edit Configuration",
     "ui.settingsBrowser.key": "Configuration Key (Key)",
     "ui.settingsBrowser.value": "Configuration Value (Value)",
