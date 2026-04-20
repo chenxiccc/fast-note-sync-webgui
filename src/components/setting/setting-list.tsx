@@ -1,4 +1,4 @@
-import { ListTree, Plus, RefreshCw, Search, X, Pencil, Trash2, TextCursorInput, Clock, ChevronLeft, ChevronRight, FileCode, FileJson, FileType, FileText, Image as ImageIcon, FileBox } from "lucide-react";
+import { Plus, RefreshCw, Search, X, Pencil, Trash2, TextCursorInput, Clock, ChevronLeft, ChevronRight, FileCode, FileJson, FileType, FileText, Image as ImageIcon, FileBox } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
 import { useSettingHandle } from "@/components/api-handle/setting-handle";
@@ -190,7 +190,7 @@ export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) 
             {/* Header / Toolbar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-0">
                 <div className="flex items-center gap-3">
-                    <ListTree className="h-5 w-5 text-primary" />
+                    <FileJson className="h-5 w-5 text-primary" />
                     {vaults && onVaultChange && (
                         <Select value={vault} onValueChange={onVaultChange}>
                             <SelectTrigger className="w-auto min-w-45 rounded-xl">

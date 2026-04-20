@@ -1,4 +1,4 @@
-﻿export default {
+export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "高性能、低延迟的笔记同步, 管理, REST 服务",
@@ -64,6 +64,7 @@
     "ui.common.narrowMode": "正常宽度",
     "ui.common.fold": "收起",
     "ui.common.noChange": "内容未发生变化",
+    "ui.common.na": "N/A",
 
 
     // --- ui.auth ---
@@ -116,7 +117,8 @@
     "ui.nav.menuGit": "Git 自动化",
     "ui.nav.menuFiles": "附件管理",
     "ui.nav.menuShares": "分享管理",
-    "ui.nav.menuSettingsBrowser": "配置浏览",
+    "ui.nav.menuSettingsBrowser": "笔记库配置文件",
+    "ui.nav.menuSyncLogs": "笔记库更新日志",
     "ui.nav.mainNavigation": "主导航",
 
     // --- ui.vault ---
@@ -348,8 +350,9 @@
     "ui.settings.testRequiredBeforeSave": "请先进行连接测试并确保成功后再保存",
 
     // --- ui.settings-browser ---
-    "ui.settingsBrowser.title": "配置浏览",
-    "ui.settingsBrowser.add": "新增配置",
+    \"ui.settingsBrowser.title\": \"笔记库配置文件\",
+    \"ui.settingsBrowser.description\": \"直接编辑和管理笔记库根目录下的隐形配置文件 ( 如插件设置、元数据等 )\",
+    \"ui.settingsBrowser.add\": \"新增配置\",
     "ui.settingsBrowser.edit": "编辑配置",
     "ui.settingsBrowser.key": "配置键 (Key)",
     "ui.settingsBrowser.value": "配置值 (Value)",
@@ -690,5 +693,37 @@
     "ui.share.passwordHint": "该分享受密码保护，请输入密码以查看内容。",
     "ui.share.passwordPlaceholder": "请输入密码...",
     "ui.share.preview": "内容预览",
+
+    // --- ui.sync-log ---
+    "ui.syncLog.title": "笔记库更新日志",
+    "ui.syncLog.vault": "笔记库",
+    "ui.syncLog.type": "类型",
+    "ui.syncLog.action": "操作",
+    "ui.syncLog.path": "文件路径",
+    "ui.syncLog.size": "大小",
+    "ui.syncLog.client": "客户端",
+    "ui.syncLog.status": "状态",
+    "ui.syncLog.message": "详细信息",
+    "ui.syncLog.time": "记录时间",
+    "ui.syncLog.changedFields": "变更内容",
+    "ui.syncLog.noLogs": "暂无同步记录",
+    "ui.syncLog.noLogsDescription": "没有找到任何更新记录",
+    "ui.syncLog.description": "追溯所有笔记库中笔记、附件、目录及配置文件的同步变更记录",
+    "ui.syncLog.allVaults": "所有笔记库",
+    "ui.syncLog.allTypes": "所有类型",
+    "ui.syncLog.allActions": "所有操作",
+    "ui.syncLog.resetFilters": "重置筛选",
+    "ui.syncLog.statusSuccess": "成功",
+    "ui.syncLog.statusFailed": "失败",
+    "ui.syncLog.type.note": "笔记",
+    "ui.syncLog.type.file": "附件",
+    "ui.syncLog.type.setting": "配置",
+    "ui.syncLog.type.folder": "目录",
+    "ui.syncLog.action.create": "新建",
+    "ui.syncLog.action.modify": "修改",
+    "ui.syncLog.action.soft_delete": "软删除",
+    "ui.syncLog.action.delete": "永久删除",
+    "ui.syncLog.action.rename": "重命名",
+    "ui.syncLog.action.restore": "恢复",
 };
 

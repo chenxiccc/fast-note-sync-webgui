@@ -1,4 +1,4 @@
-import { Database, FileText, ArchiveX, Settings, DatabaseBackup, GitPullRequestArrow, Paperclip, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, ListTree } from "lucide-react";
+import { Database, FileText, ArchiveX, Settings, DatabaseBackup, GitPullRequestArrow, Paperclip, Layers, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, FileJson, ArrowDownUp, History } from "lucide-react";
 import { Fragment, useEffect, useRef, useState, useCallback } from "react";
 import { useAppStore, type ModuleId } from "@/stores/app-store";
 import { NavItem } from "@/components/navigation/NavItem";
@@ -82,7 +82,8 @@ export function FloatingNav({ isAdmin, className }: FloatingNavProps) {
       { id: "notes", icon: FileText, labelKey: "ui.nav.menuNotes" },
       { id: "files", icon: Paperclip, labelKey: "ui.nav.menuFiles" },
       { id: "trash", icon: ArchiveX, labelKey: "ui.nav.menuTrash" },
-      { id: "settings", icon: ListTree, labelKey: "ui.nav.menuSettingsBrowser" },
+      { id: "settings", icon: FileJson, labelKey: "ui.nav.menuSettingsBrowser" },
+      { id: "sync-logs", icon: History, labelKey: "ui.nav.menuSyncLogs" },
       { id: "sync", icon: DatabaseBackup, labelKey: "ui.nav.menuSync" },
       { id: "git", icon: GitPullRequestArrow, labelKey: "ui.nav.menuGit" },
     ]

@@ -22,6 +22,7 @@ const AuthForm = lazy(() => import("@/components/user/auth-form").then(m => ({ d
 const SyncBackup = lazy(() => import("@/components/layout/sync-backup").then(m => ({ default: m.SyncBackup })));
 const GitAutomation = lazy(() => import("@/components/layout/git-automation").then(m => ({ default: m.GitAutomation })));
 const SettingManager = lazy(() => import("@/components/setting/setting-manager").then(m => ({ default: m.SettingManager })));
+const SyncLogManager = lazy(() => import("@/components/sync-log/sync-log-manager").then(m => ({ default: m.SyncLogManager })));
 
 // 加载占位符
 const PageLoading = () => (
@@ -287,6 +288,11 @@ function App() {
             onVaultChange={setActiveVault}
             onNavigateToVaults={() => setModule("vaults")}
           />
+        )
+
+      case "sync-logs":
+        return (
+          <SyncLogManager />
         )
 
       case "vaults":

@@ -1,4 +1,4 @@
-﻿export default {
+export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "高性能、低延遲的筆記同步, 管理, REST 服務",
@@ -64,6 +64,7 @@
     "ui.common.narrowMode": "正常寬度",
     "ui.common.fold": "收起",
     "ui.common.noChange": "內容未發生變化",
+    "ui.common.na": "N/A",
 
 
     // --- ui.auth ---
@@ -116,7 +117,8 @@
     "ui.nav.menuGit": "Git 自動化",
     "ui.nav.menuFiles": "附件管理",
     "ui.nav.menuShares": "分享管理",
-    "ui.nav.menuSettingsBrowser": "配置瀏覽",
+    "ui.nav.menuSettingsBrowser": "筆記庫配置文件",
+    "ui.nav.menuSyncLogs": "筆記庫更新日誌",
     "ui.nav.mainNavigation": "主導航",
 
     // --- ui.vault ---
@@ -346,7 +348,7 @@
     "ui.settings.testRequiredBeforeSave": "請先進行連接測試並確保成功後再保存",
 
     // --- ui.settings-browser ---
-    "ui.settingsBrowser.title": "配置瀏覽",
+    "ui.settingsBrowser.title": "筆記庫配置文件",
     "ui.settingsBrowser.add": "新增配置",
     "ui.settingsBrowser.edit": "編輯配置",
     "ui.settingsBrowser.key": "配置鍵 (Key)",
@@ -688,5 +690,37 @@
     "ui.share.passwordHint": "該分享受密碼保護，請輸入密碼以查看內容。",
     "ui.share.passwordPlaceholder": "請輸入密碼...",
     "ui.share.preview": "內容預覽",
+
+    // --- ui.sync-log ---
+    "ui.syncLog.title": "更新日誌",
+    "ui.syncLog.vault": "筆記庫",
+    "ui.syncLog.type": "類型",
+    "ui.syncLog.action": "操作按鈕",
+    "ui.syncLog.path": "路徑",
+    "ui.syncLog.size": "大小",
+    "ui.syncLog.client": "客戶端",
+    "ui.syncLog.status": "狀態",
+    "ui.syncLog.message": "詳細訊息",
+    "ui.syncLog.time": "時間",
+    "ui.syncLog.changedFields": "變更內容",
+    "ui.syncLog.noLogs": "暫無更新記錄",
+    "ui.syncLog.noLogsDescription": "沒有找到任何更新記錄",
+    "ui.syncLog.description": "全面追溯所有筆記庫中筆記、附件、目錄及配置文件的同步變更記錄",
+    "ui.syncLog.allVaults": "所有筆記庫",
+    "ui.syncLog.allTypes": "所有類型",
+    "ui.syncLog.allActions": "所有操作",
+    "ui.syncLog.resetFilters": "重置篩選",
+    "ui.syncLog.statusSuccess": "成功",
+    "ui.syncLog.statusFailed": "失敗",
+    "ui.syncLog.type.note": "筆記",
+    "ui.syncLog.type.file": "附件",
+    "ui.syncLog.type.setting": "配置",
+    "ui.syncLog.type.folder": "目錄",
+    "ui.syncLog.action.create": "新建",
+    "ui.syncLog.action.modify": "修改",
+    "ui.syncLog.action.soft_delete": "軟刪除",
+    "ui.syncLog.action.delete": "永久刪除",
+    "ui.syncLog.action.rename": "重新命名",
+    "ui.syncLog.action.restore": "恢復",
 };
 

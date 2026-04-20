@@ -1,4 +1,4 @@
-﻿export default {
+export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "High-performance, low-latency note synchronization, management, REST service",
@@ -64,6 +64,7 @@
     "ui.common.narrowMode": "Normal Width",
     "ui.common.fold": "Collapse",
     "ui.common.noChange": "No changes made",
+    "ui.common.na": "N/A",
 
 
     // --- ui.auth ---
@@ -116,8 +117,9 @@
     "ui.nav.menuGit": "Git Automation",
     "ui.nav.menuFiles": "Attachment Management",
     "ui.nav.menuShares": "Share Management",
-    "ui.nav.menuSettingsBrowser": "Configuration Browser",
-    "ui.nav.mainNavigation": "Main Navigation",
+    "ui.nav.menuSettingsBrowser": "Internal Settings",
+    "ui.nav.menuSyncLogs": "Vault Update Logs",
+    "ui.nav.mainNavigation": "Navigation",
 
     // --- ui.vault ---
     "ui.vault.vault": "Vault",
@@ -347,8 +349,9 @@
     "ui.settings.testRequiredBeforeSave": "Please perform a connection test and ensure success before saving",
 
     // --- ui.settings-browser ---
-    "ui.settingsBrowser.title": "Configure Browser",
-    "ui.settingsBrowser.add": "Add Configuration",
+    \"ui.settingsBrowser.title\": \"Vault Config File\",
+    \"ui.settingsBrowser.description\": \"Directly edit and manage hidden configuration files in the vault root ( e.g., plugin settings, metadata )\",
+    \"ui.settingsBrowser.add\": \"Add Configuration\",
     "ui.settingsBrowser.edit": "Edit Configuration",
     "ui.settingsBrowser.key": "Configuration Key (Key)",
     "ui.settingsBrowser.value": "Configuration Value (Value)",
@@ -689,5 +692,37 @@
     "ui.share.passwordHint": "This share is password protected. Please enter the password to view the content.",
     "ui.share.passwordPlaceholder": "Enter password...",
     "ui.share.preview": "Content Preview",
+
+    // --- ui.sync-log ---
+    "ui.syncLog.title": "Update Logs",
+    "ui.syncLog.vault": "Vault",
+    "ui.syncLog.type": "Type",
+    "ui.syncLog.action": "Action",
+    "ui.syncLog.path": "Path",
+    "ui.syncLog.size": "Size",
+    "ui.syncLog.client": "Client",
+    "ui.syncLog.status": "Status",
+    "ui.syncLog.message": "Message",
+    "ui.syncLog.time": "Time",
+    "ui.syncLog.changedFields": "Changed",
+    "ui.syncLog.noLogs": "No update logs yet",
+    "ui.syncLog.noLogsDescription": "No update records found",
+    "ui.syncLog.description": "Comprehensive tracking of synchronization changes for notes, attachments, folders, and config files across all vaults",
+    "ui.syncLog.allVaults": "All Vaults",
+    "ui.syncLog.allTypes": "All Types",
+    "ui.syncLog.allActions": "All Actions",
+    "ui.syncLog.resetFilters": "Reset Filters",
+    "ui.syncLog.statusSuccess": "Success",
+    "ui.syncLog.statusFailed": "Failed",
+    "ui.syncLog.type.note": "Note",
+    "ui.syncLog.type.file": "File",
+    "ui.syncLog.type.setting": "Config",
+    "ui.syncLog.type.folder": "Folder",
+    "ui.syncLog.action.create": "Create",
+    "ui.syncLog.action.modify": "Modify",
+    "ui.syncLog.action.soft_delete": "Move to Trash",
+    "ui.syncLog.action.delete": "Permanently Delete",
+    "ui.syncLog.action.rename": "Rename",
+    "ui.syncLog.action.restore": "Restore from Trash",
 };
 
