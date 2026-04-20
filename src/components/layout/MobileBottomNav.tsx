@@ -28,7 +28,7 @@ export function MobileBottomNav({ isAdmin, className }: MobileBottomNavProps) {
   // 导航项配置
   const navItems: Array<{
     id: ModuleId
-    icon: typeof Database
+    icon: any
     labelKey: string
     adminOnly?: boolean
   }> = [

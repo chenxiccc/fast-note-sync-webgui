@@ -1,4 +1,4 @@
-import { Plus, RefreshCw, Search, X, Pencil, Trash2, TextCursorInput, Clock, ChevronLeft, ChevronRight, FileCode, FileJson, FileType, FileText, Image as ImageIcon, FileBox } from "lucide-react";
+import { Pencil, Trash2, TextCursorInput, Clock, ChevronLeft, ChevronRight, FileCode, FileJson, FileType, FileText, Image as ImageIcon, FileBox } from "lucide-react";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
 import { useSettingHandle } from "@/components/api-handle/setting-handle";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { EditorView } from "@codemirror/view";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+
 
 
 interface SettingListProps {

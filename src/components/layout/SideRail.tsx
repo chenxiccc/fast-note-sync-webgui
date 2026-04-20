@@ -32,7 +32,7 @@ export function SideRail({ isAdmin, onLogout, className }: SideRailProps) {
   // 导航项配置
   const navItems: Array<{
     id: ModuleId
-    icon: typeof Database
+    icon: any
     labelKey: string
     adminOnly?: boolean
     isPlanned?: boolean

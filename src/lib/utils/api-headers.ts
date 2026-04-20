@@ -1,5 +1,6 @@
 import { getBrowserLang } from "@/i18n/utils";
 
+
 export interface ApiHeadersOptions {
     token?: string | null;
     includeContentType?: boolean;
@@ -16,7 +17,7 @@ export function buildApiHeaders({
     extraHeaders = {},
 }: ApiHeadersOptions = {}): Record<string, string> {
     const headers: Record<string, string> = {
-        "X-Client": "web-gui",
+        "X-Client": "Web",
     };
 
     if (includeContentType) {
