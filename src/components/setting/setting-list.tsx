@@ -1,5 +1,4 @@
 import { Plus, RefreshCw, Search, X, Pencil, Trash2, TextCursorInput, Clock, ChevronLeft, ChevronRight, FileCode, FileJson, FileType, FileText, Image as ImageIcon, FileBox } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
 import { useSettingHandle } from "@/components/api-handle/setting-handle";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -9,31 +8,40 @@ import { SettingItem } from "@/lib/types/setting";
 import { Button } from "@/components/ui/button";
 import CodeMirror from "@uiw/react-codemirror";
 import { useTranslation } from "react-i18next";
-import { VaultType } from "@/lib/types/vault";
 import { Input } from "@/components/ui/input";
 import { EditorView } from "@codemirror/view";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 
 interface SettingListProps {
     vault: string;
-    vaults: VaultType[];
-    onVaultChange: (vault: string) => void;
+    searchKeyword: string;
+    currentPage: number;
+    onPageChange: (page: number) => void;
+    refreshSignal: number;
+    onRegisterAdd: (onAdd: () => void) => void;
 }
 
-export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) {
+export function SettingList({ 
+    vault, 
+    searchKeyword, 
+    currentPage, 
+    onPageChange, 
+    refreshSignal,
+    onRegisterAdd
+}: SettingListProps) {
     const { t } = useTranslation();
     const { handleSettingList, handleSaveSetting, handleDeleteSetting, handleRenameSetting } = useSettingHandle();
     const { openConfirmDialog } = useConfirmDialog();
 
     const [settings, setSettings] = useState<SettingItem[]>([]);
     const [loading, setLoading] = useState(false);
-    const [searchKeyword, setSearchKeyword] = useState("");
 
     // 分页状态
-    const [currentPage, setCurrentPage] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const pageSize = 24;
+    const pageSize = 20;
 
     const fetchSettings = useCallback(() => {
         if (!vault) return;
@@ -49,7 +57,7 @@ export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) 
 
     useEffect(() => {
         fetchSettings();
-    }, [fetchSettings]);
+    }, [fetchSettings, refreshSignal]);
 
     const filteredSettings = settings;
 
@@ -58,7 +66,7 @@ export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) 
         return [markdown()];
     };
 
-    const onAdd = () => {
+    const onAdd = useCallback(() => {
         let path = "";
         let content = "";
 
@@ -80,7 +88,7 @@ export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) 
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">{t("ui.settingsBrowser.value")}</label>
+                        <label className="text-sm font-medium">{t("ui.settingsBrowser.content")}</label>
                         <div className="border border-border rounded-xl overflow-hidden min-h-[300px] focus-within:ring-2 focus-within:ring-primary/20">
                             <CodeMirror
                                 height="300px"
@@ -114,7 +122,11 @@ export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) 
             <EditorWrapper initialPath="" />,
             "max-w-3xl"
         );
-    };
+    }, [vault, fetchSettings, openConfirmDialog, t]);
+
+    useEffect(() => {
+        onRegisterAdd(onAdd);
+    }, [onAdd, onRegisterAdd]);
 
     const onEdit = (item: SettingItem) => {
         let content = item.content;
@@ -127,7 +139,7 @@ export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) 
                 handleSaveSetting(vault, { ...item, content }, fetchSettings);
             },
             <div className="space-y-2 pt-2">
-                <label className="text-sm font-medium">{t("ui.settingsBrowser.value")}</label>
+                <label className="text-sm font-medium">{t("ui.settingsBrowser.content")}</label>
                 <div className="border border-border rounded-xl overflow-hidden min-h-[450px] focus-within:ring-2 focus-within:ring-primary/20">
                     <CodeMirror
                         autoFocus
@@ -185,213 +197,147 @@ export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) 
 
     const totalPages = Math.ceil(totalItems / pageSize);
 
+    const formatSize = (bytes: number) => {
+        if (bytes === 0) return "0 B";
+        const k = 1024;
+        const sizes = ["B", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+
+    const getFileIcon = (name: string) => {
+        const ext = name.split('.').pop()?.toLowerCase();
+        switch (ext) {
+            case 'json':
+                return <FileJson className="h-4 w-4 text-orange-500/70" />;
+            case 'js':
+            case 'ts':
+            case 'jsx':
+            case 'tsx':
+                return <FileCode className="h-4 w-4 text-blue-500/70" />;
+            case 'css':
+            case 'scss':
+            case 'less':
+                return <FileType className="h-4 w-4 text-pink-500/70" />;
+            case 'md':
+            case 'txt':
+                return <FileText className="h-4 w-4 text-emerald-500/70" />;
+            case 'yml':
+            case 'yaml':
+                return <FileBox className="h-4 w-4 text-purple-500/70" />;
+            case 'png':
+            case 'jpg':
+            case 'jpeg':
+            case 'gif':
+            case 'svg':
+            case 'webp':
+                return <ImageIcon className="h-4 w-4 text-indigo-500/70" />;
+            default:
+                return <FileText className="h-4 w-4 text-primary/70" />;
+        }
+    };
+
     return (
-        <div className="w-full flex flex-col space-y-2">
-            {/* Header / Toolbar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-0">
-                <div className="flex items-center gap-3">
-                    <FileJson className="h-5 w-5 text-primary" />
-                    {vaults && onVaultChange && (
-                        <Select value={vault} onValueChange={onVaultChange}>
-                            <SelectTrigger className="w-auto min-w-45 rounded-xl">
-                                <SelectValue placeholder={t("ui.common.selectVault")} />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-xl">
-                                {vaults.map((v) => (
-                                    <SelectItem key={v.id} value={v.vault} className="rounded-xl">
-                                        {v.vault}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    )}
-                    <span className="text-sm font-medium text-muted-foreground ml-2">
-                        {totalItems} {t("ui.common.items")}
-                    </span>
-                </div>
-
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <div className="relative flex-1 sm:w-64 group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                        <Input
-                            type="text"
-                            placeholder={t("ui.common.search")}
-                            className="pl-9 pr-10 rounded-xl"
-                            value={searchKeyword}
-                            onChange={(e) => {
-                                setSearchKeyword(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                        />
-                        {searchKeyword && (
-                            <button
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground transition-colors"
-                                onClick={() => {
-                                    setSearchKeyword("");
-                                    setCurrentPage(1);
-                                }}
-                            >
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        )}
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={fetchSettings}
-                        disabled={loading}
-                        className="rounded-xl shrink-0"
-                    >
-                        <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                    </Button>
-                    <Button onClick={onAdd} className="rounded-xl shrink-0">
-                        <Plus className="h-4 w-4 sm:mr-2" />
-                        <span className="hidden sm:inline">{t("ui.common.add")}</span>
-                    </Button>
-                </div>
-            </div>
-
+        <div className="w-full flex flex-col space-y-4">
             {/* List Content */}
             {loading && settings.length === 0 ? (
-                <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
-                    <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2" />
-                    {t("ui.common.loading")}
+                <div className="rounded-xl border border-border bg-card p-24 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                    <p className="mt-4 text-muted-foreground">{t("ui.common.loading")}</p>
                 </div>
             ) : filteredSettings.length === 0 ? (
-                <div className="rounded-xl border border-border bg-card p-12 text-center text-muted-foreground">
-                    {t("ui.settingsBrowser.noSettings")}
+                <div className="rounded-xl border border-border bg-card p-24 text-center">
+                    <div className="p-4 rounded-full bg-muted w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                      <FileJson className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <p className="text-lg font-medium text-foreground">{t("ui.settingsBrowser.noSettings")}</p>
                 </div>
             ) : (
                 <>
-                    {/* Row Layout List */}
-                    <div className="flex flex-col border border-border/50 rounded-xl bg-card/50 backdrop-blur-sm overflow-hidden shadow-sm">
-                        {filteredSettings.map((item, index) => {
-                            const pathParts = item.path.split('/');
-                            const fileName = pathParts.pop() || "";
-                            const dirPath = pathParts.join('/');
+                    {/* Table Layout - Exactly like Sync Logs */}
+                    <div className="rounded-xl border border-border/50 bg-card/50 backdrop-blur-sm overflow-hidden shadow-sm overflow-x-auto">
+                        <Table>
+                            <TableHeader className="bg-muted/50">
+                                <TableRow>
+                                    <TableHead className="min-w-[300px] py-4"><div className="flex items-center gap-2 px-2"><FileType className="h-3.5 w-3.5 text-muted-foreground" /> {t("ui.settingsBrowser.key")}</div></TableHead>
+                                    <TableHead className="w-[120px] py-4"><div className="flex items-center gap-2"><FileText className="h-3.5 w-3.5 text-muted-foreground" /> {t("ui.settingsBrowser.value")}</div></TableHead>
+                                    <TableHead className="w-[180px] py-4"><div className="flex items-center gap-2"><Clock className="h-3.5 w-3.5 text-muted-foreground" /> {t("ui.common.updatedAt")}</div></TableHead>
+                                    <TableHead className="w-[150px] py-4 text-right px-6">{t("ui.common.actions")}</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredSettings.map((item) => {
+                                    const pathParts = item.path.split('/');
+                                    const fileName = pathParts.pop() || "";
+                                    const dirPath = pathParts.join('/');
 
-                            const getFileIcon = (name: string) => {
-                                const ext = name.split('.').pop()?.toLowerCase();
-                                switch (ext) {
-                                    case 'json':
-                                        return <FileJson className="h-4 w-4 text-orange-500/70" />;
-                                    case 'js':
-                                    case 'ts':
-                                    case 'jsx':
-                                    case 'tsx':
-                                        return <FileCode className="h-4 w-4 text-blue-500/70" />;
-                                    case 'css':
-                                    case 'scss':
-                                    case 'less':
-                                        return <FileType className="h-4 w-4 text-pink-500/70" />;
-                                    case 'md':
-                                    case 'txt':
-                                        return <FileText className="h-4 w-4 text-emerald-500/70" />;
-                                    case 'yml':
-                                    case 'yaml':
-                                        return <FileBox className="h-4 w-4 text-purple-500/70" />;
-                                    case 'png':
-                                    case 'jpg':
-                                    case 'jpeg':
-                                    case 'gif':
-                                    case 'svg':
-                                    case 'webp':
-                                        return <ImageIcon className="h-4 w-4 text-indigo-500/70" />;
-                                    default:
-                                        return <FileText className="h-4 w-4 text-primary/70" />;
-                                }
-                            };
-
-                            return (
-                                <div
-                                    key={item.pathHash || item.path}
-                                    className={`group flex items-center justify-between px-4 py-3 transition-all duration-200 hover:bg-muted/40 ${
-                                        index !== filteredSettings.length - 1 ? "border-b border-border/40" : ""
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                                            {getFileIcon(fileName)}
-                                        </div>
-                                        <div className="flex flex-col min-w-0">
-                                            <div className="flex flex-wrap items-center gap-x-1 text-sm">
-                                                {dirPath && (
-                                                    <span className="text-muted-foreground/85">
-                                                        {dirPath}/
-                                                    </span>
-                                                )}
-                                                <span className="font-semibold text-foreground break-all">
-                                                    {fileName}
-                                                </span>
-                                            </div>
-                                            {(item.updatedAt || item.createdAt) && (
-                                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground/50 mt-1">
-                                                    <div className="flex items-center gap-1">
-                                                        <Clock className="h-3 w-3" />
-                                                        {format(new Date(item.updatedAt || item.createdAt || ""), "yyyy-MM-dd HH:mm")}
+                                    return (
+                                        <TableRow key={item.pathHash || item.path} className="group hover:bg-muted/30 transition-colors border-border/40">
+                                            <TableCell className="py-3 px-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-primary/5 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                                                        {getFileIcon(fileName)}
                                                     </div>
-                                                    {item.content && (
-                                                        <div className="hidden md:flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded bg-muted/30 text-[9px] uppercase tracking-wider">
-                                                           {item.content.length} chars
+                                                    <div className="flex flex-col min-w-0">
+                                                        <div className="flex items-center gap-1 text-sm">
+                                                            {dirPath && <span className="text-muted-foreground/60">{dirPath}/</span>}
+                                                            <span className="font-bold text-foreground">{fileName}</span>
                                                         </div>
-                                                    )}
+                                                        <span className="text-[10px] text-muted-foreground/40 font-mono truncate max-w-[200px]">
+                                                            {item.pathHash}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-1.5 ml-4 shrink-0 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-200">
-                                        <Tooltip content={t("ui.settingsBrowser.rename")} side="top">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
-                                                onClick={() => onRename(item)}
-                                            >
-                                                <TextCursorInput className="h-4 w-4" />
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip content={t("ui.common.edit")} side="top">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-colors"
-                                                onClick={() => onEdit(item)}
-                                            >
-                                                <Pencil className="h-4 w-4" />
-                                            </Button>
-                                        </Tooltip>
-                                        <Tooltip content={t("ui.common.delete")} side="top">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-8 w-8 rounded-lg text-destructive/70 hover:text-destructive hover:bg-destructive/10"
-                                                onClick={() => onDelete(item)}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </Tooltip>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                            </TableCell>
+                                            <TableCell className="py-3">
+                                                <div className="px-2 py-0.5 rounded bg-muted/40 text-[10px] font-mono text-muted-foreground inline-block">
+                                                    {formatSize(item.content?.length || 0)}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="py-3 text-xs text-muted-foreground">
+                                                {(item.updatedAt || item.createdAt) && format(new Date(item.updatedAt || item.createdAt || ""), "yyyy-MM-dd HH:mm")}
+                                            </TableCell>
+                                            <TableCell className="py-3 text-right px-4">
+                                                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Tooltip content={t("ui.settingsBrowser.rename")} side="top">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all" onClick={() => onRename(item)}>
+                                                            <TextCursorInput className="h-4 w-4" />
+                                                        </Button>
+                                                    </Tooltip>
+                                                    <Tooltip content={t("ui.common.edit")} side="top">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg hover:bg-primary/10 hover:text-primary transition-all" onClick={() => onEdit(item)}>
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                    </Tooltip>
+                                                    <Tooltip content={t("ui.common.delete")} side="top">
+                                                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive/70 hover:text-destructive hover:bg-destructive/10 transition-all" onClick={() => onDelete(item)}>
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </Tooltip>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
                     </div>
 
-                    {/* Pagination Controller */}
+                    {/* Pagination */}
                     {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-2 py-2">
+                        <div className="flex items-center justify-center gap-2 mt-6">
                             <Button
                                 variant="outline"
                                 size="icon"
                                 className="h-9 w-9 rounded-xl"
                                 disabled={currentPage === 1 || loading}
-                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                onClick={() => onPageChange(currentPage - 1)}
                             >
                                 <ChevronLeft className="h-4 w-4" />
                             </Button>
 
-                            <div className="flex items-center gap-1 px-2">
-                                <span className="text-sm font-medium">{currentPage}</span>
+                            <div className="flex items-center gap-1 px-4 py-1.5 bg-muted/50 rounded-xl border border-border/50 shadow-inner">
+                                <span className="text-sm font-semibold">{currentPage}</span>
                                 <span className="text-sm text-muted-foreground">/</span>
                                 <span className="text-sm text-muted-foreground">{totalPages}</span>
                             </div>
@@ -401,7 +347,7 @@ export function SettingList({ vault, vaults, onVaultChange }: SettingListProps) 
                                 size="icon"
                                 className="h-9 w-9 rounded-xl"
                                 disabled={currentPage === totalPages || loading}
-                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                onClick={() => onPageChange(currentPage + 1)}
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </Button>

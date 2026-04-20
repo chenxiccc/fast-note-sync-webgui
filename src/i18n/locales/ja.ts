@@ -1,4 +1,4 @@
-﻿export default {
+export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "高性能、低遅延のノート同期、管理、REST サービス",
@@ -17,6 +17,7 @@
     "ui.common.clear": "クリア",
     "ui.common.batchPermanentDelete": "一括永久削除",
     "ui.common.batchPermanentDeleteConfirm": "選択した {{count}} 項目を永久削除してもよろしいですか？この操作は元に戻せません！",
+    "ui.common.search": "検索",
     "ui.common.refresh": "更新",
     "ui.common.retry": "再試行",
     "ui.common.refreshSuccess": "更新に成功しました",
@@ -64,6 +65,7 @@
     "ui.common.narrowMode": "標準幅",
     "ui.common.fold": "折りたたむ",
     "ui.common.noChange": "内容に変更はありません",
+    "ui.common.na": "N/A",
 
 
     // --- ui.auth ---
@@ -116,7 +118,8 @@
     "ui.nav.menuGit": "Git 自動化",
     "ui.nav.menuFiles": "添付ファイル管理",
     "ui.nav.menuShares": "共有管理",
-    "ui.nav.menuSettingsBrowser": "設定ブラウザ",
+    "ui.nav.menuSettingsBrowser": "ノートライブラリ設定ファイル",
+    "ui.nav.menuSyncLogs": "ノートライブラリ更新ログ",
     "ui.nav.mainNavigation": "メインナビゲーション",
 
     // --- ui.vault ---
@@ -169,6 +172,7 @@
     "ui.note.noVaultsForNotes": "まだノート庫がありません",
     "ui.note.searchPath": "パス",
     "ui.note.searchContentMode": "内容",
+
     "ui.note.sortByBy": "ソート",
     "ui.note.sortByMtime": "更新日時",
     "ui.note.sortByCtime": "作成日時",
@@ -337,6 +341,8 @@
     "ui.settings.databaseConnMaxLifetime": "接続の最大存続時間 (MaxLifetime)",
     "ui.settings.databaseConnMaxIdleTime": "接続の最大アイドル時間 (MaxIdleTime)",
     "ui.settings.databaseMaxWriteConcurrency": "最大書き込み並行数 (MaxWriteConcurrency)",
+    "ui.settings.databaseSchema": "データベーススキーマ (Postgres)",
+    "ui.settings.databaseSslMode": "SSL モード (SSL Mode)",
     "ui.settings.mysqlPermissionWarning": "注意：MySQL を使用する際、提供されたアカウントにはデータベース作成 (CREATE DATABASE) の権限が必要です。これはユーザー情報の分離に使用されます。",
     "ui.settings.postgresPermissionWarning": "注意：PostgreSQL を使用する際、提供されたアカウントにはデータベース作成 (CREATE DATABASE) の権限が必要です。これはユーザー情報の分離に使用されます。",
     "ui.settings.testConnection": "接続テスト",
@@ -345,15 +351,17 @@
     "ui.settings.testRequiredBeforeSave": "保存する前に、まず接続テストを行い、成功していることを確認してください",
 
     // --- ui.settings-browser ---
-    "ui.settingsBrowser.title": "設定ブラウザ",
+    "ui.settingsBrowser.title": "ノートライブラリ設定ファイル",
+    "ui.settingsBrowser.description": "ノートライブラリの設定情報（ノートライブラリ設定、プラグイン、テーマなど）を管理します",
     "ui.settingsBrowser.add": "新規設定",
     "ui.settingsBrowser.edit": "設定編集",
-    "ui.settingsBrowser.key": "設定キー (Key)",
-    "ui.settingsBrowser.value": "設定値 (Value)",
-    "ui.settingsBrowser.keyRequired": "キー名は空にできません",
+    "ui.settingsBrowser.key": "パス",
+    "ui.settingsBrowser.value": "サイズ",
+    "ui.settingsBrowser.content": "内容",
+    "ui.settingsBrowser.keyRequired": "パスは空にできません",
     "ui.settingsBrowser.confirmDelete": "設定項目 \"{{key}}\" を削除してもよろしいですか？",
-    "ui.settingsBrowser.rename": "キー名の変更",
-    "ui.settingsBrowser.newKey": "新しいキー名",
+    "ui.settingsBrowser.rename": "パスの名前変更",
+    "ui.settingsBrowser.newKey": "新しいパス",
     "ui.settingsBrowser.renameSuccess": "設定項目の名前変更が成功しました",
     "ui.settingsBrowser.noSettings": "設定項目はありません",
 
@@ -381,7 +389,7 @@
     "ui.system.upgrading": "アップグレード中...",
     "ui.system.upgradeSuccess": "アップグレードのトリガーに成功しました。ページが再読み込みされます。",
     "ui.system.upgradeFailed": "アップグレードのトリガーに失敗しました",
-    "ui.system.upgradeRefreshTimeout": "アップグレードは完了しましたが、サービスがまだ利用可能ではありません。手動で更新してください。",
+    "ui.system.upgradeRefreshTimeout": "アップグレードが完了しましたが、サービスはまだ利用できません。ページを手動でリフレッシュしてください。",
     "ui.system.viewChangelog": "更新履歴を表示",
     "ui.system.getVersionError": "バージョン情報の取得に失敗しました",
     "ui.system.getWebGuiConfigError": "WebGui 設定の取得に失敗しました:",
@@ -687,5 +695,37 @@
     "ui.share.passwordHint": "この共有はパスワードで保護されています。コンテンツを表示するにはパスワードを入力してください。",
     "ui.share.passwordPlaceholder": "パスワードを入力してください...",
     "ui.share.preview": "コンテンツのプレビュー",
+
+    // --- ui.sync-log ---
+    "ui.syncLog.title": "ノートライブラリ更新ログ",
+    "ui.syncLog.vault": "ノートライブラリ",
+    "ui.syncLog.type": "タイプ",
+    "ui.syncLog.action": "操作",
+    "ui.syncLog.path": "ファイルパス",
+    "ui.syncLog.size": "サイズ",
+    "ui.syncLog.client": "クライアント",
+    "ui.syncLog.status": "ステータス",
+    "ui.syncLog.message": "詳細情報",
+    "ui.syncLog.time": "記録時刻",
+    "ui.syncLog.changedFields": "変更内容",
+    "ui.syncLog.noLogs": "同期記録はありません",
+    "ui.syncLog.noLogsDescription": "更新記録が見つかりません",
+    "ui.syncLog.description": "ノートライブラリ内のノート、添付ファイル、フォルダ、設定ファイルの同期変更履歴を追跡します",
+    "ui.syncLog.allVaults": "すべてのノートライブラリ",
+    "ui.syncLog.allTypes": "すべてのタイプ",
+    "ui.syncLog.allActions": "すべての操作",
+    "ui.syncLog.resetFilters": "フィルターをリセット",
+    "ui.syncLog.statusSuccess": "成功",
+    "ui.syncLog.statusFailed": "失敗",
+    "ui.syncLog.type.note": "ノート",
+    "ui.syncLog.type.file": "添付ファイル",
+    "ui.syncLog.type.setting": "設定",
+    "ui.syncLog.type.folder": "フォルダ",
+    "ui.syncLog.action.create": "新規作成",
+    "ui.syncLog.action.modify": "修正",
+    "ui.syncLog.action.soft_delete": "論理削除",
+    "ui.syncLog.action.delete": "永続削除",
+    "ui.syncLog.action.rename": "名前変更",
+    "ui.syncLog.action.restore": "復元",
 };
 

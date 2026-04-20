@@ -7,7 +7,7 @@ import { SyncLogItem } from "@/lib/types/sync-log";
 import { VaultType } from "@/lib/types/vault";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, FilterX, History } from "lucide-react";
+import { Logs, RefreshCw, FilterX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function SyncLogManager() {
@@ -70,7 +70,7 @@ export function SyncLogManager() {
             <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-inner">
-                        <History className="h-6 w-6" />
+                        <Logs className="h-5 w-5" />
                     </div>
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">{t("ui.syncLog.title")}</h2>

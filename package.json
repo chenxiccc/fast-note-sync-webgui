@@ -10,7 +10,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "dist": "npx tsx scripts/copy-dist.ts"
+    "dist": "npx tsx scripts/copy-dist.ts",
+    "translate": "node scripts/translate-i18n.mjs --model Qwen/Qwen3.5-27B",
+    "t": "node scripts/translate-i18n.mjs --model Qwen/Qwen3.5-27B"
   },
   "dependencies": {
     "@codemirror/lang-markdown": "^6.5.0",

@@ -1,4 +1,4 @@
-import { Database, FileText, ArchiveX, Settings, DatabaseBackup, GitPullRequestArrow, Layers } from "lucide-react";
+import { Library, NotepadText, ArchiveX, Settings, DatabaseBackup, GitPullRequestArrow, Layers } from "lucide-react";
 import { ProfileButton } from "@/components/navigation/ProfileButton";
 import { useAppStore, type ModuleId } from "@/stores/app-store";
 import { NavItem } from "@/components/navigation/NavItem";
@@ -38,8 +38,8 @@ export function SideRail({ isAdmin, onLogout, className }: SideRailProps) {
     isPlanned?: boolean
   }> = [
       { id: "dashboard", icon: Layers, labelKey: "ui.nav.menuDashboard" },
-      { id: "vaults", icon: Database, labelKey: "ui.nav.menuVaults" },
-      { id: "notes", icon: FileText, labelKey: "ui.nav.menuNotes" },
+      { id: "vaults", icon: Library, labelKey: "ui.nav.menuVaults" },
+      { id: "notes", icon: NotepadText, labelKey: "ui.nav.menuNotes" },
       { id: "trash", icon: ArchiveX, labelKey: "ui.nav.menuTrash" },
       { id: "sync", icon: DatabaseBackup, labelKey: "ui.nav.menuSync", isPlanned: true },
       { id: "git", icon: GitPullRequestArrow, labelKey: "ui.nav.menuGit", isPlanned: true },

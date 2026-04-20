@@ -1,4 +1,4 @@
-import { FileText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, FolderSearch, TextCursorInput, Share2 } from "lucide-react";
+import { NotepadText, Trash2, RefreshCw, Plus, Calendar, Clock, ChevronLeft, ChevronRight, History, Search, X, SortDesc, SortAsc, RotateCcw, Eye, Pencil, Folder as FolderIcon, ChevronDown, FolderSearch, TextCursorInput, Share2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -402,7 +402,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                     <DropdownMenuTrigger asChild>
                                         <button className="flex items-center gap-1 px-1.5 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/80 rounded-lg transition-colors">
                                             {searchMode === "path" && <FolderSearch className="h-3.5 w-3.5" />}
-                                            {searchMode === "content" && <FileText className="h-3.5 w-3.5" />}
+                                            {searchMode === "content" && <NotepadText className="h-3.5 w-3.5" />}
 
                                             <ChevronDown className="h-3 w-3" />
                                         </button>
@@ -422,7 +422,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                             className={`rounded-lg flex items-center justify-between ${searchMode === "content" ? "bg-accent" : ""}`}
                                         >
                                             <div className="flex items-center gap-2">
-                                                <FileText className="h-4 w-4" />
+                                                <NotepadText className="h-4 w-4" />
                                                 <span>{t("ui.note.searchContentMode")}</span>
                                             </div>
                                         </DropdownMenuItem>
@@ -501,7 +501,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                             className={`px-3 h-full text-xs flex items-center gap-1.5 transition-colors border-l border-border ${sortBy === "path" ? "bg-accent text-accent-foreground" : "hover:bg-muted"}`}
                             onClick={() => setSortBy("path")}
                         >
-                            <FileText className="h-3.5 w-3.5" />
+                            <NotepadText className="h-3.5 w-3.5" />
                             {t("ui.note.sortByPath")}
                         </button>
                         <Tooltip content={sortOrder === "desc" ? t("ui.note.sortDesc") : t("ui.note.sortAsc")} side="top" delay={200}>
@@ -621,7 +621,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                             className={`px-3 h-full text-xs flex items-center gap-1.5 transition-colors border-l border-border ${sortBy === "path" ? "bg-accent text-accent-foreground" : "hover:bg-muted"}`}
                             onClick={() => setSortBy("path")}
                         >
-                            <FileText className="h-3.5 w-3.5" />
+                            <NotepadText className="h-3.5 w-3.5" />
                             {t("ui.note.sortByPath")}
                         </button>
                         <Tooltip content={sortOrder === "desc" ? t("ui.note.sortDesc") : t("ui.note.sortAsc")} side="top" delay={200}>
@@ -754,7 +754,7 @@ export function NoteList({ vault, vaults, onVaultChange, onSelectNote, onCreateN
                                             </div>
                                         )}
                                         <span className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
-                                            <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+                                            <NotepadText className="h-4 w-4 sm:h-5 sm:w-5" />
                                         </span>
                                         <div className="min-w-0 flex-1">
                                             <h3 className="font-semibold text-card-foreground truncate flex items-center gap-1">

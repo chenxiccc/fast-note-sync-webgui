@@ -1,4 +1,4 @@
-﻿export default {
+export default {
     // --- ui.common ---
     "ui.common.title": "Fast Note Sync",
     "ui.common.subtitle": "고성능, 저지연 노트 동기화, 관리, REST 서비스",
@@ -16,7 +16,8 @@
     "ui.common.permanentDelete": "영구 삭제",
     "ui.common.clear": "비우기",
     "ui.common.batchPermanentDelete": "일괄 영구 삭제",
-    "ui.common.batchPermanentDeleteConfirm": "선택한 {{count}}개 항목을 영구 삭제하시겠습니까? 이 작업은 복구할 수 없습니다!",
+    "ui.common.batchPermanentDeleteConfirm": "선택한 {{count}}개 항목을 영구적으로 삭제하시겠습니까? 이 작업은 취소할 수 없습니다!",
+    "ui.common.search": "검색",
     "ui.common.refresh": "새로고침",
     "ui.common.retry": "재시도",
     "ui.common.refreshSuccess": "새로고침 성공",
@@ -64,6 +65,7 @@
     "ui.common.narrowMode": "일반 너비",
     "ui.common.fold": "접기",
     "ui.common.noChange": "내용이 변경되지 않았습니다",
+    "ui.common.na": "N/A",
 
 
     // --- ui.auth ---
@@ -116,7 +118,8 @@
     "ui.nav.menuGit": "Git 자동화",
     "ui.nav.menuFiles": "첨부 파일 관리",
     "ui.nav.menuShares": "공유 관리",
-    "ui.nav.menuSettingsBrowser": "설정 탐색",
+    "ui.nav.menuSettingsBrowser": "노트북 설정 파일",
+    "ui.nav.menuSyncLogs": "노트북 업데이트 로그",
     "ui.nav.mainNavigation": "주 탐색",
 
     // --- ui.vault ---
@@ -169,6 +172,7 @@
     "ui.note.noVaultsForNotes": "아직 노트 저장소가 없습니다",
     "ui.note.searchPath": "경로",
     "ui.note.searchContentMode": "내용",
+
     "ui.note.sortByBy": "정렬",
     "ui.note.sortByMtime": "수정 시간",
     "ui.note.sortByCtime": "생성 시간",
@@ -337,6 +341,8 @@
     "ui.settings.databaseConnMaxLifetime": "연결 최대 수명 (MaxLifetime)",
     "ui.settings.databaseConnMaxIdleTime": "연결 최대 유휴 시간 (MaxIdleTime)",
     "ui.settings.databaseMaxWriteConcurrency": "최대 쓰기 동시성 (MaxWriteConcurrency)",
+    "ui.settings.databaseSchema": "데이터베이스 스키마 (Postgres)",
+    "ui.settings.databaseSslMode": "SSL 모드 (SSL Mode)",
     "ui.settings.mysqlPermissionWarning": "주의: MySQL을 사용할 경우 제공된 계정은 사용자 정보 격리를 위해 데이터베이스 생성 (CREATE DATABASE) 권한을 가져야 합니다.",
     "ui.settings.postgresPermissionWarning": "주의: PostgreSQL을 사용할 경우 제공된 계정은 사용자 정보 격리를 위해 데이터베이스 생성 (CREATE DATABASE) 권한을 가져야 합니다.",
     "ui.settings.testConnection": "연결 테스트",
@@ -345,15 +351,17 @@
     "ui.settings.testRequiredBeforeSave": "저장하기 전에 먼저 연결 테스트를 수행하고 성공했는지 확인하세요.",
 
     // --- ui.settings-browser ---
-    "ui.settingsBrowser.title": "설정 브라우저",
+    "ui.settingsBrowser.title": "노트북 설정 파일",
+    "ui.settingsBrowser.description": "노트북 설정 정보 (예: 노트북 설정, 플러그인, 테마 등) 관리",
     "ui.settingsBrowser.add": "새 설정 추가",
     "ui.settingsBrowser.edit": "설정 편집",
-    "ui.settingsBrowser.key": "설정 키 (Key)",
-    "ui.settingsBrowser.value": "설정 값 (Value)",
-    "ui.settingsBrowser.keyRequired": "키 이름은 비워둘 수 없습니다.",
+    "ui.settingsBrowser.key": "경로",
+    "ui.settingsBrowser.value": "크기",
+    "ui.settingsBrowser.content": "내용",
+    "ui.settingsBrowser.keyRequired": "경로는 비워둘 수 없습니다",
     "ui.settingsBrowser.confirmDelete": "설정 항목 \"{{key}}\"를 삭제하시겠습니까?",
-    "ui.settingsBrowser.rename": "키 이름 변경",
-    "ui.settingsBrowser.newKey": "새 키 이름",
+    "ui.settingsBrowser.rename": "경로 이름 변경",
+    "ui.settingsBrowser.newKey": "새 경로",
     "ui.settingsBrowser.renameSuccess": "설정 항목 이름 변경 성공",
     "ui.settingsBrowser.noSettings": "설정 항목이 없습니다.",
 
@@ -381,7 +389,7 @@
     "ui.system.upgrading": "업그레이드 중...",
     "ui.system.upgradeSuccess": "업그레이드 트리거 성공, 페이지가 곧 새로고침됩니다",
     "ui.system.upgradeFailed": "업그레이드 트리거 실패",
-    "ui.system.upgradeRefreshTimeout": "업그레이드는 완료되었지만 서비스가 아직 사용 가능하지 않습니다. 수동으로 새로고침해 주세요.",
+    "ui.system.upgradeRefreshTimeout": "업그레이드가 완료되었으나 서비스가 아직 복구되지 않았습니다. 페이지를 수동으로 새로고침하세요.",
     "ui.system.viewChangelog": "변경 로그 보기",
     "ui.system.getVersionError": "버전 정보 가져오기 실패",
     "ui.system.getWebGuiConfigError": "WebGui 설정 가져오기 실패:",
@@ -687,5 +695,37 @@
     "ui.share.passwordHint": "이 공유는 비밀번호로 보호됩니다. 내용을 보려면 비밀번호를 입력하세요.",
     "ui.share.passwordPlaceholder": "비밀번호를 입력하세요...",
     "ui.share.preview": "내용 미리보기",
+
+    // --- ui.sync-log ---
+    "ui.syncLog.title": "노트북 업데이트 로그",
+    "ui.syncLog.vault": "노트북",
+    "ui.syncLog.type": "유형",
+    "ui.syncLog.action": "동작",
+    "ui.syncLog.path": "파일 경로",
+    "ui.syncLog.size": "크기",
+    "ui.syncLog.client": "클라이언트",
+    "ui.syncLog.status": "상태",
+    "ui.syncLog.message": "상세 정보",
+    "ui.syncLog.time": "기록 시간",
+    "ui.syncLog.changedFields": "변경 내용",
+    "ui.syncLog.noLogs": "동기화 기록 없음",
+    "ui.syncLog.noLogsDescription": "업데이트 기록을 찾을 수 없습니다",
+    "ui.syncLog.description": "모든 노트북의 노트, 첨부 파일, 폴더 및 설정 파일의 동기화 변경 기록 추적",
+    "ui.syncLog.allVaults": "모든 노트북",
+    "ui.syncLog.allTypes": "모든 유형",
+    "ui.syncLog.allActions": "모든 동작",
+    "ui.syncLog.resetFilters": "필터 초기화",
+    "ui.syncLog.statusSuccess": "성공",
+    "ui.syncLog.statusFailed": "실패",
+    "ui.syncLog.type.note": "노트",
+    "ui.syncLog.type.file": "첨부 파일",
+    "ui.syncLog.type.setting": "설정",
+    "ui.syncLog.type.folder": "폴더",
+    "ui.syncLog.action.create": "새로 만들기",
+    "ui.syncLog.action.modify": "수정",
+    "ui.syncLog.action.soft_delete": "소프트 삭제",
+    "ui.syncLog.action.delete": "영구 삭제",
+    "ui.syncLog.action.rename": "이름 변경",
+    "ui.syncLog.action.restore": "복원",
 };
 

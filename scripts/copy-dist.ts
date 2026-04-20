@@ -6,26 +6,25 @@ import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const ENV_FILE = path.resolve(__dirname, "../.env");
 
-const distConfigPath = path.resolve(__dirname, '../dist.ts');
+// 加载 .env 环境变量
+if (fs.existsSync(ENV_FILE)) {
+    const envContent = fs.readFileSync(ENV_FILE, "utf-8");
+    envContent.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith("#")) {
+            const match = trimmed.match(/^([^=]+)=(.*)$/);
+            if (match) {
+                const key = match[1].trim();
+                const value = match[2].trim().replace(/^(['"])(.*)\1$/, "$2"); // 去除引号
+                if (!process.env[key]) process.env[key] = value;
+            }
+        }
+    });
+}
 
 async function main() {
-    // 1. Check if dist.ts exists, if not create it
-    if (!fs.existsSync(distConfigPath)) {
-        console.log('dist.ts not found. Creating default configuration...');
-        const defaultConfig = `export default {
-    win: 'C:/Users/haier/DevApps/@JsApps/obsidian-better-sync/dist',
-    mac: '/Users/haier/DevApps/@JsApps/obsidian-better-sync/dist'
-};
-`;
-        fs.writeFileSync(distConfigPath, defaultConfig);
-        console.log(`Created ${distConfigPath}. Please configure the paths according to your environment.`);
-    }
-
-    // 2. Import config dynamically
-    const configModule = await import(pathToFileURL(distConfigPath).href);
-    const config = configModule.default || configModule;
-
     const args = process.argv.slice(2);
     const targetKey = args[0];
 
@@ -34,10 +33,10 @@ async function main() {
         process.exit(1);
     }
 
-    const targetPath = config[targetKey];
+    const targetPath = targetKey === 'win' ? process.env.DIST_PATH_WIN : process.env.DIST_PATH_MAC;
 
     if (!targetPath) {
-        console.error(`Target "${targetKey}" not found in dist.ts`);
+        console.error(`Target path for "${targetKey}" not found in environment variables (DIST_PATH_WIN/DIST_PATH_MAC)`);
         process.exit(1);
     }
 

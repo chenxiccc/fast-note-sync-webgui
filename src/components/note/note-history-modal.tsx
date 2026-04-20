@@ -1,5 +1,5 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ChevronLeft, ChevronRight, History, FileText, Apple, Laptop, Chrome, Smartphone, Copy, Check, RotateCcw } from "lucide-react";
+import { ChevronLeft, ChevronRight, History, NotepadText, Apple, Laptop, Chrome, Smartphone, Copy, Check, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useNoteHandle } from "@/components/api-handle/note-handle";
@@ -393,7 +393,7 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
                             <div className="mt-4 sm:mt-6 border-t pt-4 sm:pt-6">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                                     <h3 className="text-base sm:text-lg font-semibold flex items-baseline gap-2">
-                                        <FileText className="h-4 w-4 self-center" />
+                                        <NotepadText className="h-4 w-4 self-center" />
                                         <span>{t("ui.history.diffDetails", { version: selectedHistory.version })}</span>
                                         <div className="flex items-baseline gap-2 ml-2 text-[10px] font-normal uppercase tracking-wider">
                                             <span className="px-1.5 py-0 rounded bg-green-100 text-muted-foreground/60 border border-green-200/50 leading-tight">

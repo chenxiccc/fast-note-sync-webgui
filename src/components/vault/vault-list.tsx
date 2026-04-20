@@ -1,5 +1,5 @@
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
-import { Pencil, Trash2, Plus, Clipboard, Database, Clock, RefreshCw, Check, X, Search, GripVertical, ExternalLink } from "lucide-react";
+import { Pencil, Trash2, Plus, Clipboard, Library, Clock, RefreshCw, Check, X, Search, GripVertical, ExternalLink } from "lucide-react";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from "@dnd-kit/sortable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -77,7 +77,7 @@ function SortableVaultCard({
       {/* 头部：仓库名称 */}
       <header className="flex items-center gap-3">
         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
-          <Database className="h-5 w-5" />
+          <Library className="h-5 w-5" />
         </span>
         {editingId === vault.id ? (
           <div className="flex items-center gap-2 flex-1" onClick={(e) => e.stopPropagation()}>
@@ -511,7 +511,7 @@ export function VaultList({ onNavigateToNotes, onNavigateToAttachments }: VaultL
         <div className="rounded-xl border border-primary bg-card p-5">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
-              <Database className="h-5 w-5" />
+              <Library className="h-5 w-5" />
             </span>
             <Input
               value={newVaultName}

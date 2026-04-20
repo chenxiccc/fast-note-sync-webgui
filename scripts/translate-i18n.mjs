@@ -19,6 +19,24 @@ import fs from "node:fs";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LOCALES_DIR = path.resolve(__dirname, "../src/i18n/locales");
 const DICT_FILE = path.resolve(__dirname, "../src/i18n/locales/.translate-dict.json");
+const ENV_FILE = path.resolve(__dirname, "../.env");
+
+// 加载 .env 环境变量
+if (fs.existsSync(ENV_FILE)) {
+  const envContent = fs.readFileSync(ENV_FILE, "utf-8");
+  envContent.split(/\r?\n/).forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith("#")) {
+      const match = trimmed.match(/^([^=]+)=(.*)$/);
+      if (match) {
+        const key = match[1].trim();
+        const value = match[2].trim().replace(/^(['"])(.*)\1$/, "$2"); // 去除引号
+        if (!process.env[key]) process.env[key] = value;
+      }
+    }
+  });
+}
+
 const SOURCE_LANG = "zh-CN";
 
 const TARGET_LANGS = {
