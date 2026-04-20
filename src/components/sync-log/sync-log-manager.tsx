@@ -209,6 +209,7 @@ export function SyncLogManager() {
             {/* List Table */}
             <SyncLogList 
                 logs={logs} 
+                vaults={vaults}
                 loading={loading}
                 currentPage={currentPage}
                 totalPages={totalPages}

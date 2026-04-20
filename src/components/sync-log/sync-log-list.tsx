@@ -1,4 +1,5 @@
 import { SyncLogItem } from "@/lib/types/sync-log";
+import { VaultType } from "@/lib/types/vault";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -9,13 +10,14 @@ import { cn } from "@/lib/utils";
 
 interface SyncLogListProps {
     logs: SyncLogItem[];
+    vaults: VaultType[];
     loading: boolean;
     currentPage: number;
     totalPages: number;
     onPageChange: (page: number) => void;
 }
 
-export function SyncLogList({ logs, loading, currentPage, totalPages, onPageChange }: SyncLogListProps) {
+export function SyncLogList({ logs, vaults, loading, currentPage, totalPages, onPageChange }: SyncLogListProps) {
     const { t } = useTranslation();
 
     const getStatusBadge = (status: number) => {
@@ -104,7 +106,9 @@ export function SyncLogList({ logs, loading, currentPage, totalPages, onPageChan
                                     {format(new Date(log.createdAt), "yyyy-MM-dd HH:mm:ss")}
                                 </TableCell>
                                 <TableCell className="whitespace-nowrap shrink-0">
-                                    <span className="text-sm font-medium">Vault-{log.vaultId}</span>
+                                    <span className="text-sm font-medium">
+                                        {vaults.find(v => String(v.id) === String(log.vaultId))?.vault || `Vault-${log.vaultId}`}
+                                    </span>
                                 </TableCell>
                                 <TableCell className="whitespace-nowrap shrink-0">
                                     {(() => {
