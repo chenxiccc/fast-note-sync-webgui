@@ -325,7 +325,7 @@ export default {
     "ui.settings.pullSourceDesc": "バージョン検出および更新時のソースリポジトリを選択します。",
     "ui.settings.pullSource.auto": "自動検出",
     "ui.settings.pullSource.github": "github.com",
-    "ui.settings.pullSource.cnb": "騰訊 cnb.tool",
+    "ui.settings.pullSource.cnb": "騰訊 cnb.cool",
     "ui.settings.userDatabaseConfig": "データベース強化",
     "ui.settings.userDatabaseDesc": "デフォルトは <b>SQLite</b>（メンテナンス不要、並行読み取り/単一書き込み対応）。個人および小規模なデプロイに適しており、個人ユーザーの大部分のニーズを満たします。<br/><div class='mt-2 pt-2 border-t border-border/50 opacity-90'><div class='mb-2 text-amber-500 font-medium'>プロフェッショナルなデータベース (PostgreSQL / MySQL) への切り替えを推奨するシナリオ：</div><ul class='list-disc list-inside space-y-1 mb-1'><li>多ユーザー、複数のノートライブラリで規模が非常に大きい場合</li><li>ノートの数や添付ファイルの容量が膨大な場合</li><li>頻繁に並行処理関連のエラーが発生する場合</li></ul><div>プロフェッショナルなデータベースは、並行処理と大規模データ処理においてより信頼性が高いですが、ハードウェア要件と運用コストが高まります（運用能力が必要です）。</div><div class='mt-2 pt-2 border-t border-border/50 text-xs text-rose-500 font-medium italic'>注意：データベースを変更した場合、元のデータは新しいデータベースに自動的に移行されません。ノートライブラリの強制同期を再実行する必要があります。また、データベースタイプを変更する前に、接続テストに成功している必要があります。</div></div>",
     "ui.settings.databaseType": "データベースタイプ",

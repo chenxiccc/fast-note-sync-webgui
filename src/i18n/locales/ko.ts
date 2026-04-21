@@ -325,7 +325,7 @@ export default {
     "ui.settings.pullSourceDesc": "버전 확인 및 업데이트 시 사용할 소스 저장소를 선택합니다.",
     "ui.settings.pullSource.auto": "자동 감지",
     "ui.settings.pullSource.github": "github.com",
-    "ui.settings.pullSource.cnb": "텐센트 cnb.tool",
+    "ui.settings.pullSource.cnb": "텐센트 cnb.cool",
     "ui.settings.userDatabaseConfig": "데이터베이스 강화",
     "ui.settings.userDatabaseDesc": "기본 <b>SQLite</b>(유지보수 불필요, 동시 읽기/단일 쓰기 지원)로, 개인 및 소규모 배포에 적합하며 개인 사용자의 대부분 요구사항을 충족합니다.<br/><div class='mt-2 pt-2 border-t border-border/50 opacity-90'><div class='mb-2 text-amber-500 font-medium'>전문 데이터베이스 (PostgreSQL / MySQL) 사용 권장 시나리오:</div><ul class='list-disc list-inside space-y-1 mb-1'><li>다중 사용자, 여러 노트 라이브러리 및 대규모 규모</li><li>노트 수 또는 첨부 파일 크기가 매우 큼</li><li>동시성 관련 오류가 자주 발생함</li></ul><div>전문 데이터베이스는 동시성 및 대규모 데이터 처리에서 더 신뢰할 수 있지만, 하드웨어 요구사항과 운영 비용을 증가시킵니다 (운영 능력 필요).</div><div class='mt-2 pt-2 border-t border-border/50 text-xs text-rose-500 font-medium italic'>주의: 데이터베이스를 변경한 후 기존 데이터는 새 데이터베이스로 마이그레이션되지 않습니다. 노트 라이브러리를 다시 강제 동기화해야 합니다. 데이터베이스 유형을 변경하려면 먼저 연결 테스트를 통과해야 합니다.</div></div>",
     "ui.settings.databaseType": "데이터베이스 유형",

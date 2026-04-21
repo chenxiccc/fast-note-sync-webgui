@@ -325,7 +325,7 @@ export default {
     "ui.settings.pullSourceDesc": "選擇版本檢測&更新時的來源倉庫。",
     "ui.settings.pullSource.auto": "自動檢測",
     "ui.settings.pullSource.github": "github.com",
-    "ui.settings.pullSource.cnb": "騰訊 cnb.tool",
+    "ui.settings.pullSource.cnb": "騰訊 cnb.cool",
     "ui.settings.userDatabaseConfig": "數據庫增強",
     "ui.settings.userDatabaseDesc": "默認 <b>SQLite</b>（免維護，支持並發讀/單寫），適合個人及小規模部署，能滿足個人用戶大部分需求。<br/><div class='mt-2 pt-2 border-t border-border/50 opacity-90'><div class='mb-2 text-amber-500 font-medium'>建議改用專業數據庫 (PostgreSQL / MySQL) 的場景：</div><ul class='list-disc list-inside space-y-1 mb-1'><li>多用戶、多個筆記庫且規模極大</li><li>筆記數量或附件體積龐大</li><li>經常遇到並發相關錯誤</li></ul><div>專業數據庫在並發與大規模數據處理上更可靠，但會提高硬件要求與運維成本（需具備運維能力）。</div><div class='mt-2 pt-2 border-t border-border/50 text-xs text-rose-500 font-medium italic'>注意：當修改數據庫之後，原數據不會遷移到新數據庫，您需要重新強制同步筆記庫；設置必須先通過連接測試才能更改數據庫類型。</div></div>",
     "ui.settings.databaseType": "數據庫類型",
