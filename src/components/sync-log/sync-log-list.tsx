@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Clock, HardDrive, FileType, Activity, FileText, Monitor, CheckCircle2, XCircle, Info, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui/tooltip";
 
 interface SyncLogListProps {
     logs: SyncLogItem[];
@@ -159,9 +160,33 @@ export function SyncLogList({ logs, vaults, loading, currentPage, totalPages, on
                                     {formatSize(log.size)}
                                 </TableCell>
                                 <TableCell className="text-center whitespace-nowrap shrink-0">
-                                    <span className="text-xs text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded truncate max-w-[80px] inline-block">
-                                        {log.clientName || t("ui.common.na")}
-                                    </span>
+                                    <Tooltip
+                                        content={
+                                            <div className="flex flex-col gap-1.5 p-1 min-w-[120px]">
+                                                <div className="flex justify-between items-center gap-4">
+                                                    <span className="text-muted-foreground/70">{t("ui.system.wsClientName")}</span>
+                                                    <span className="font-medium text-foreground capitalize">{log.clientType || t("ui.common.na")}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center gap-4 border-t border-border/30 pt-1.5">
+                                                    <span className="text-muted-foreground/70">{t("ui.share.version")}</span>
+                                                    <span className="font-mono text-foreground font-medium">{log.clientVersion ? `v${log.clientVersion}` : t("ui.common.na")}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center gap-4 border-t border-border/30 pt-1.5">
+                                                    <span className="text-muted-foreground/70">{t("ui.common.name")}</span>
+                                                    <span className="font-semibold text-foreground">{log.clientName || t("ui.common.na")}</span>
+                                                </div>
+                                            </div>
+                                        }
+                                    >
+                                        <div className="flex items-center justify-center">
+                                            <Badge 
+                                                variant="outline" 
+                                                className="text-[10px] font-medium px-2 py-0.5 rounded-md hover:bg-primary/5 cursor-help transition-colors"
+                                            >
+                                                {log.clientType || log.clientName || t("ui.common.na")}
+                                            </Badge>
+                                        </div>
+                                    </Tooltip>
                                 </TableCell>
                                 <TableCell className="whitespace-nowrap shrink-0">
                                     {getStatusBadge(log.status)}

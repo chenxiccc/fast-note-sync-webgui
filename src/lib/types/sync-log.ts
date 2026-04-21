@@ -8,6 +8,8 @@ export interface SyncLogItem {
     pathHash: string;
     size: number;
     clientName: string;
+    clientType?: string;
+    clientVersion?: string;
     status: number;
     message: string;
     createdAt: string;

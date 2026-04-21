@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { format } from "date-fns";
+import { Tooltip } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 
 // 专业品牌图标组件
@@ -305,10 +307,34 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
                                                 <TableRow key={item.id} className={`hover:bg-muted/50 transition-colors ${selectedHistory?.id === item.id ? "bg-blue-50" : ""}`}>
                                                     <TableCell className="font-mono">v{item.version}</TableCell>
                                                     <TableCell className="text-muted-foreground">
-                                                        <div className="flex items-center gap-2">
-                                                            <span>{item.clientName || "Unknown"}</span>
-                                                            {renderClientIcon(item.clientName)}
-                                                        </div>
+                                                        <Tooltip
+                                                            content={
+                                                                <div className="flex flex-col gap-1.5 p-1 min-w-[120px]">
+                                                                    <div className="flex justify-between items-center gap-4">
+                                                                        <span className="text-muted-foreground/70">{t("ui.system.wsClientName")}</span>
+                                                                        <span className="font-medium text-foreground capitalize">{item.clientType || t("ui.common.na")}</span>
+                                                                    </div>
+                                                                    <div className="flex justify-between items-center gap-4 border-t border-border/30 pt-1.5">
+                                                                        <span className="text-muted-foreground/70">{t("ui.share.version")}</span>
+                                                                        <span className="font-mono text-foreground font-medium">{item.clientVersion ? `v${item.clientVersion}` : t("ui.common.na")}</span>
+                                                                    </div>
+                                                                    <div className="flex justify-between items-center gap-4 border-t border-border/30 pt-1.5">
+                                                                        <span className="text-muted-foreground/70">{t("ui.common.name")}</span>
+                                                                        <span className="font-semibold text-foreground">{item.clientName || t("ui.common.na")}</span>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        >
+                                                            <div className="flex items-center gap-2 cursor-help">
+                                                                <Badge 
+                                                                    variant="outline" 
+                                                                    className="text-xs font-medium px-2 py-0.5 rounded-md hover:bg-primary/5 transition-colors whitespace-nowrap"
+                                                                >
+                                                                    {item.clientType || item.clientName || t("ui.common.na")}
+                                                                </Badge>
+                                                                {renderClientIcon(item.clientName)}
+                                                            </div>
+                                                        </Tooltip>
                                                     </TableCell>
                                                     <TableCell className="text-muted-foreground">
                                                         {item.createdAt ? format(new Date(item.createdAt), "yyyy-MM-dd HH:mm:ss") : "-"}
@@ -341,8 +367,29 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="font-mono font-medium">v{item.version}</span>
                                                 <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-                                                    {renderClientIcon(item.clientName)}
-                                                    <span>{item.clientName || "Unknown"}</span>
+                                                    <Tooltip
+                                                        content={
+                                                            <div className="flex flex-col gap-1.5 p-1 min-w-[120px]">
+                                                                <div className="flex justify-between items-center gap-4">
+                                                                    <span className="text-muted-foreground/70">{t("ui.system.wsClientName")}</span>
+                                                                    <span className="font-medium text-foreground capitalize">{item.clientType || t("ui.common.na")}</span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center gap-4 border-t border-border/30 pt-1.5">
+                                                                    <span className="text-muted-foreground/70">{t("ui.share.version")}</span>
+                                                                    <span className="font-mono text-foreground font-medium">{item.clientVersion ? `v${item.clientVersion}` : t("ui.common.na")}</span>
+                                                                </div>
+                                                                <div className="flex justify-between items-center gap-4 border-t border-border/30 pt-1.5">
+                                                                    <span className="text-muted-foreground/70">{t("ui.common.name")}</span>
+                                                                    <span className="font-semibold text-foreground">{item.clientName || t("ui.common.na")}</span>
+                                                                </div>
+                                                            </div>
+                                                        }
+                                                    >
+                                                        <div className="flex items-center gap-1.5 cursor-help">
+                                                            {renderClientIcon(item.clientName)}
+                                                            <span className="capitalize">{item.clientType || item.clientName || "Unknown"}</span>
+                                                        </div>
+                                                    </Tooltip>
                                                 </div>
                                             </div>
                                             <div className="text-xs text-muted-foreground">

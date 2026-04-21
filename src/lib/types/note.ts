@@ -43,6 +43,8 @@ export interface NoteHistory {
     vaultId: number
     path: string
     clientName: string
+    clientType?: string
+    clientVersion?: string
     version: number
     createdAt: string
 }

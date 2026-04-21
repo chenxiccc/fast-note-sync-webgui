@@ -66,6 +66,7 @@ export default {
     "ui.common.fold": "Collapse",
     "ui.common.noChange": "No changes made",
     "ui.common.na": "N/A",
+    "ui.common.name": "Name",
 
 
     // --- ui.auth ---
