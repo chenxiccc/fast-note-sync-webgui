@@ -66,6 +66,7 @@ export default {
     "ui.common.fold": "收起",
     "ui.common.noChange": "內容未發生變化",
     "ui.common.na": "N/A",
+    "ui.common.name": "名稱",
 
 
     // --- ui.auth ---

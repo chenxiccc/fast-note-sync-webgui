@@ -66,6 +66,7 @@ export default {
     "ui.common.fold": "접기",
     "ui.common.noChange": "내용이 변경되지 않았습니다",
     "ui.common.na": "N/A",
+    "ui.common.name": "이름",
 
 
     // --- ui.auth ---

@@ -682,5 +682,6 @@
   "ui.syncLog.action.soft_delete": "ad44487282d6916e824d28f38cca400b",
   "ui.syncLog.action.delete": "96d2b75fc1a5613b21b8fd6c79b999cd",
   "ui.syncLog.action.rename": "c8ce4b36cb6a0ff587974a738f32facf",
-  "ui.syncLog.action.restore": "c7db6d4f1a42987a0df962e927926f14"
+  "ui.syncLog.action.restore": "c7db6d4f1a42987a0df962e927926f14",
+  "ui.common.name": "d7ec2d3fea4756bc1642e0f10c180cf5"
 }

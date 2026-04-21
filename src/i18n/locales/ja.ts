@@ -66,6 +66,7 @@ export default {
     "ui.common.fold": "折りたたむ",
     "ui.common.noChange": "内容に変更はありません",
     "ui.common.na": "N/A",
+    "ui.common.name": "名前",
 
 
     // --- ui.auth ---
