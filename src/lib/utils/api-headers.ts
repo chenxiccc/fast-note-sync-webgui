@@ -17,7 +17,9 @@ export function buildApiHeaders({
     extraHeaders = {},
 }: ApiHeadersOptions = {}): Record<string, string> {
     const headers: Record<string, string> = {
-        "X-Client": "Web",
+        "X-Client": "WebGui",
+        "X-Client-Name": encodeURIComponent("Web"),
+        "X-Client-Version": "1.0.0",
     };
 
     if (includeContentType) {

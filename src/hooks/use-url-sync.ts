@@ -54,6 +54,7 @@ export function useUrlSync(
             else if (params.has('sync')) module = 'sync';
             else if (params.has('git')) module = 'git';
             else if (params.has('settings')) module = 'settings';
+            else if (params.has('sync-logs')) module = 'sync-logs';
 
             // 更新 module
             if (currentModuleRef.current !== module || (module === 'trash' && type)) {

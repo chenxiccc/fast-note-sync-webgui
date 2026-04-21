@@ -292,7 +292,10 @@ function App() {
 
       case "sync-logs":
         return (
-          <SyncLogManager />
+          <SyncLogManager
+            vault={activeVault}
+            onVaultChange={setActiveVault}
+          />
         )
 
       case "vaults":

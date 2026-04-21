@@ -10,7 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Logs, RefreshCw, FilterX } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export function SyncLogManager() {
+interface SyncLogManagerProps {
+    vault?: string | null;
+    onVaultChange?: (vault: string | null) => void;
+}
+
+export function SyncLogManager({ vault, onVaultChange }: SyncLogManagerProps) {
     const { t } = useTranslation();
     const { handleSyncLogList } = useSyncLogHandle();
     const { handleVaultList } = useVaultHandle();
@@ -20,7 +25,7 @@ export function SyncLogManager() {
     const [vaults, setVaults] = useState<VaultType[]>([]);
     
     // Filters
-    const [filterVault, setFilterVault] = useState<string>("all");
+    const [filterVault, setFilterVault] = useState<string>(vault || "all");
     const [filterType, setFilterType] = useState<string>("all");
     const [filterAction, setFilterAction] = useState<string>("all");
     
@@ -57,6 +62,25 @@ export function SyncLogManager() {
         fetchLogs();
     }, [fetchLogs]);
 
+    // Sync external vault prop to internal filter
+    useEffect(() => {
+        if (vault && vault !== filterVault) {
+            setFilterVault(vault);
+            setCurrentPage(1);
+        } else if (!vault && filterVault !== "all") {
+            setFilterVault("all");
+            setCurrentPage(1);
+        }
+    }, [vault]);
+
+    const handleVaultFilterChange = (v: string) => {
+        setFilterVault(v);
+        setCurrentPage(1);
+        if (onVaultChange) {
+            onVaultChange(v === "all" ? null : v);
+        }
+    };
+
     const resetFilters = () => {
         setFilterVault("all");
         setFilterType("all");
@@ -81,7 +105,7 @@ export function SyncLogManager() {
                 <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                     {/* Vault Selector */}
                     <div className="flex flex-col gap-1.5 min-w-[140px]">
-                        <Select value={filterVault} onValueChange={(v) => { setFilterVault(v); setCurrentPage(1); }}>
+                        <Select value={filterVault} onValueChange={handleVaultFilterChange}>
                             <SelectTrigger className="rounded-xl h-10 bg-card hover:bg-muted/50 transition-colors">
                                 <SelectValue placeholder={t("ui.syncLog.vault")} />
                             </SelectTrigger>
