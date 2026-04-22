@@ -166,11 +166,11 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
 
         return (
             <div className="diff-content overflow-auto max-h-[500px] p-6 bg-slate-50 rounded-xl border border-slate-200 font-mono text-[13px] leading-7 shadow-inner text-slate-700 select-text selection:bg-blue-100 selection:text-blue-900">
-                <div className="diff-line-row flex items-start group h-7">
+                <div className="diff-line-row flex items-start group min-h-[28px]">
                     <div className="line-number w-10 shrink-0 text-right pr-3 select-none text-transparent font-mono text-[11px] border-r border-transparent mr-3 leading-7">
                         -
                     </div>
-                    <div className="line-content flex-1 py-0 text-slate-300 font-mono text-[11px] select-text cursor-text min-h-[28px] leading-7 h-7">
+                    <div className="line-content flex-1 min-w-0 py-0 text-slate-300 font-mono text-[11px] select-text cursor-text min-h-[28px] leading-7 break-words">
                         {notePath}
                     </div>
                 </div>
@@ -180,11 +180,11 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
                     displayLines.map((line, lineIndex) => {
                         const hasVisibleText = line.segments.some((segment) => String(segment.Text ?? "").length > 0);
                         return (
-                            <div key={`diff-line-${lineIndex}`} className="diff-line-row flex items-start group h-7">
+                            <div key={`diff-line-${lineIndex}`} className="diff-line-row flex items-start group min-h-[28px]">
                                 <div className="line-number w-10 shrink-0 text-right pr-3 select-none text-slate-300 font-mono text-[11px] border-r border-slate-100 mr-3 group-hover:text-slate-400 transition-colors leading-7">
                                     {line.lineNum}
                                 </div>
-                                <div className="line-content flex-1 py-0 min-h-[28px] leading-7 h-7">
+                                <div className="line-content flex-1 min-w-0 py-0 min-h-[28px] leading-7 break-words">
                                     {hasVisibleText
                                         ? line.segments.map((segment, segmentIndex) => {
                                             const key = `segment-${lineIndex}-${segmentIndex}`;
@@ -242,20 +242,20 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
 
         return (
             <div className="diff-content overflow-auto max-h-[500px] p-6 bg-slate-50 rounded-xl border border-slate-200 font-mono text-[13px] leading-7 shadow-inner text-slate-700 select-text selection:bg-blue-100 selection:text-blue-900">
-                <div className="diff-line-row flex items-start group h-7">
+                <div className="diff-line-row flex items-start group min-h-[28px]">
                     <div className="line-number w-10 shrink-0 text-right pr-3 select-none text-transparent font-mono text-[11px] border-r border-transparent mr-3 leading-7">
                         -
                     </div>
-                    <div className="line-content flex-1 py-0 text-slate-300 font-mono text-[11px] select-text cursor-text min-h-[28px] leading-7 h-7">
+                    <div className="line-content flex-1 min-w-0 py-0 text-slate-300 font-mono text-[11px] select-text cursor-text min-h-[28px] leading-7 break-words">
                         {notePath}
                     </div>
                 </div>
                 {lines.map((line, index) => (
-                    <div key={`original-line-${index}`} className="diff-line-row flex items-start group h-7">
+                    <div key={`original-line-${index}`} className="diff-line-row flex items-start group min-h-[28px]">
                         <div className="line-number w-10 shrink-0 text-right pr-3 select-none text-slate-300 font-mono text-[11px] border-r border-slate-100 mr-3 group-hover:text-slate-400 transition-colors leading-7">
                             {index + 1}
                         </div>
-                        <div className="line-content flex-1 py-0 min-h-[28px] leading-7 h-7">{line || "\u00A0"}</div>
+                        <div className="line-content flex-1 min-w-0 py-0 min-h-[28px] leading-7 break-words">{line || "\u00A0"}</div>
                     </div>
                 ))}
             </div>
