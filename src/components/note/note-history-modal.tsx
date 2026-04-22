@@ -170,7 +170,7 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
                     <div className="line-number w-10 shrink-0 text-right pr-3 select-none text-transparent font-mono text-[11px] border-r border-transparent mr-3 leading-7">
                         -
                     </div>
-                    <div className="line-content flex-1 py-0 text-slate-300 font-mono text-[11px] select-text cursor-text min-h-[28px] leading-7 whitespace-nowrap">
+                    <div className="line-content flex-1 min-w-0 py-0 text-slate-300 font-mono text-[11px] select-text cursor-text min-h-[28px] leading-7 break-words">
                         {notePath}
                     </div>
                 </div>
@@ -184,7 +184,7 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
                                 <div className="line-number w-10 shrink-0 text-right pr-3 select-none text-slate-300 font-mono text-[11px] border-r border-slate-100 mr-3 group-hover:text-slate-400 transition-colors leading-7">
                                     {line.lineNum}
                                 </div>
-                                <div className="line-content flex-1 py-0 min-h-[28px] leading-7 whitespace-nowrap">
+                                <div className="line-content flex-1 min-w-0 py-0 min-h-[28px] leading-7 break-words">
                                     {hasVisibleText
                                         ? line.segments.map((segment, segmentIndex) => {
                                             const key = `segment-${lineIndex}-${segmentIndex}`;
@@ -246,7 +246,7 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
                     <div className="line-number w-10 shrink-0 text-right pr-3 select-none text-transparent font-mono text-[11px] border-r border-transparent mr-3 leading-7">
                         -
                     </div>
-                    <div className="line-content flex-1 py-0 text-slate-300 font-mono text-[11px] select-text cursor-text min-h-[28px] leading-7 whitespace-nowrap">
+                    <div className="line-content flex-1 min-w-0 py-0 text-slate-300 font-mono text-[11px] select-text cursor-text min-h-[28px] leading-7 break-words">
                         {notePath}
                     </div>
                 </div>
@@ -255,7 +255,7 @@ export function NoteHistoryModal({ isOpen, onClose, vault, notePath, pathHash, i
                         <div className="line-number w-10 shrink-0 text-right pr-3 select-none text-slate-300 font-mono text-[11px] border-r border-slate-100 mr-3 group-hover:text-slate-400 transition-colors leading-7">
                             {index + 1}
                         </div>
-                        <div className="line-content flex-1 py-0 min-h-[28px] leading-7 whitespace-nowrap">{line || "\u00A0"}</div>
+                        <div className="line-content flex-1 min-w-0 py-0 min-h-[28px] leading-7 break-words">{line || "\u00A0"}</div>
                     </div>
                 ))}
             </div>
