@@ -138,11 +138,12 @@ export default {
     "ui.vault.note": "笔记",
     "ui.vault.attachmentCount": "附件",
     "ui.vault.totalSize": "总容量: {{size}}",
-    "ui.vault.authTokenConfig": "授权配置",
+    "ui.vault.authTokenConfig": "授权客户端",
+    "ui.vault.copyConfig": "复制连接配置",
     "ui.vault.copyConfigSuccess": "配置已复制到剪贴板",
     "ui.vault.copyConfigError": "复制失败，请手动选择复制",
-    "ui.vault.oneClickImport": "一键导入 Obsidian",
-    "ui.vault.pleaseCreateVault": "请新建笔记库 或 授权配置到 Obsidian 自动创建",
+    "ui.vault.oneClickImport": "一键授权 Obsidian",
+    "ui.vault.pleaseCreateVault": "请新建笔记库 或 授权客户端到 Obsidian 自动创建",
     "ui.vault.createVaultFirst": "请先创建一个笔记库,然后再进行管理",
     "ui.vault.goToVaultManagement": "前往笔记库管理",
     "ui.vault.setAsDefault": "设为默认",
@@ -367,10 +368,10 @@ export default {
     "ui.settingsBrowser.noSettings": "暂无配置项",
 
     // --- ui.obsidian ---
-    "ui.obsidian.authTokenConfig": "授权配置",
+    "ui.obsidian.authTokenConfig": "授权客户端",
     "ui.obsidian.authTokenConfigTo": "一键授权到 Obsidian",
     "ui.obsidian.oneClickImport": "一键授权到 Obsidian",
-    "ui.obsidian.copyConfigSuccess": "授权配置已复制, 请返回 Obsidian 插件粘贴配置",
+    "ui.obsidian.copyConfigSuccess": "授权信息已复制, 请返回 Obsidian 插件粘贴配置",
     "ui.obsidian.copyConfigError": "非 HTTPS 页面，无法使用剪贴板功能，请手动复制授权配置",
 
     // --- ui.system ---

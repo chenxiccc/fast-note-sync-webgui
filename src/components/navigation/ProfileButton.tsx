@@ -192,7 +192,7 @@ export function ProfileButton({ onLogout, className }: ProfileButtonProps) {
                 className="w-full sm:w-auto rounded-xl"
               >
                 <Clipboard className="h-4 w-4 mr-2" />
-                {t("ui.common.copy")}
+                {t("ui.vault.copyConfig")}
               </Button>
 
             </div>

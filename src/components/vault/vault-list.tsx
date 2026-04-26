@@ -1,5 +1,5 @@
+import { Pencil, Trash2, Plus, Clipboard, Library, Clock, RefreshCw, Check, X, Search, GripVertical, ExternalLink, Cable } from "lucide-react";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
-import { Pencil, Trash2, Plus, Clipboard, Library, Clock, RefreshCw, Check, X, Search, GripVertical, ExternalLink } from "lucide-react";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from "@dnd-kit/sortable";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useConfirmDialog } from "@/components/context/confirm-dialog-context";
@@ -76,7 +76,7 @@ function SortableVaultCard({
     >
       {/* 头部：仓库名称 */}
       <header className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/5 text-primary shrink-0">
           <Library className="h-5 w-5" />
         </span>
         {editingId === vault.id ? (
@@ -174,9 +174,9 @@ function SortableVaultCard({
       </div>
 
       {/* 操作按钮 */}
-      <div className="flex items-center justify-end gap-1 pt-2 border-t border-border">
+      <div className="flex items-center justify-between gap-1 pt-2 border-t border-border">
         {editingId === vault.id ? (
-          <>
+          <div className="flex items-center justify-end gap-1 w-full">
             <Tooltip content={t("ui.common.save")} side="top" delay={200}>
               <Button
                 variant="ghost"
@@ -203,43 +203,44 @@ function SortableVaultCard({
                 <X className="h-4 w-4" />
               </Button>
             </Tooltip>
-          </>
+          </div>
         ) : (
           <>
             <Tooltip content={t("ui.vault.authTokenConfig")} side="top" delay={200}>
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-xl text-muted-foreground hover:text-purple-600"
+                className="h-8 px-3 rounded-xl bg-sky-700 hover:bg-sky-900 text-white transition-colors border-none shadow-sm flex items-center gap-1.5"
                 onClick={(e) => onViewConfig(vault.vault, e)}
               >
-                <Clipboard className="h-4 w-4" />
+                <Cable className="h-4 w-4" />
+                <span className="text-xs font-medium">{t("ui.vault.authTokenConfig")}</span>
               </Button>
             </Tooltip>
 
-            <Tooltip content={t("ui.vault.edit")} side="top" delay={200}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-xl text-muted-foreground hover:text-green-600"
-                onClick={(e) => startEdit(vault, e)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </Tooltip>
-            <Tooltip content={t("ui.vault.delete")} side="top" delay={200}>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleDelete(vault.id)
-                }}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </Tooltip>
+            <div className="flex items-center gap-1">
+              <Tooltip content={t("ui.vault.edit")} side="top" delay={200}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-xl text-muted-foreground hover:text-green-600"
+                  onClick={(e) => startEdit(vault, e)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+              <Tooltip content={t("ui.vault.delete")} side="top" delay={200}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-xl text-muted-foreground hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDelete(vault.id)
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </Tooltip>
+            </div>
           </>
         )}
       </div>
@@ -510,7 +511,7 @@ export function VaultList({ onNavigateToNotes, onNavigateToAttachments }: VaultL
       {isAdding && (
         <div className="rounded-xl border border-primary bg-card p-5">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary shrink-0">
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/5 text-primary shrink-0">
               <Library className="h-5 w-5" />
             </span>
             <Input
@@ -635,7 +636,7 @@ export function VaultList({ onNavigateToNotes, onNavigateToAttachments }: VaultL
 
               <Button onClick={handleCopyConfig} className="w-full sm:w-auto rounded-xl">
                 <Clipboard className="h-4 w-4 mr-2" />
-                {t("ui.common.copy")}
+                {t("ui.vault.copyConfig")}
               </Button>
 
             </div>
